@@ -6,6 +6,7 @@ use DR\Monorepo\Configuration\ConfigurationFinder;
 use DR\Monorepo\Configuration\ConfigurationLoader;
 use DR\Monorepo\Console\Command\SplitAllCommand;
 use DR\Monorepo\Console\Command\SplitCommand;
+use DR\Monorepo\Environment\OperatingSystem;
 use DR\Monorepo\Filesystem\Filesystem;
 use DR\Monorepo\Operation\Splitter;
 use DR\Monorepo\Process\ProcessFactory;
@@ -35,9 +36,11 @@ class MonorepoServiceProvider implements ServiceProviderInterface
         $container = $this->registerConfigurationLoader($container);
         $container = $this->registerConfigurationFinder($container);
         $container = $this->registerProcessFactory($container);
+        $container = $this->registerOperatingSystem($container);
         $container = $this->registerGit($container);
         $container = $this->registerSplitshLite($container);
         $container = $this->registerSplitter($container);
+
         $this->registerCommands($container);
     }
 
@@ -159,7 +162,25 @@ class MonorepoServiceProvider implements ServiceProviderInterface
     protected function registerSplitshLite(Container $container): Container
     {
         $container->offsetSet('splitsh_lite', static function(Container $container) {
-            return new SplitshLite($container->offsetGet('process_factory'));
+            return new SplitshLite(
+                $container->offsetGet('operating_system'),
+                $container->offsetGet('process_factory'),
+                $container->offsetGet('bin_dir')
+            );
+        });
+
+        return $container;
+    }
+
+    /**
+     * @param \Pimple\Container $container
+     *
+     * @return \Pimple\Container
+     */
+    protected function registerOperatingSystem(Container $container): Container
+    {
+        $container->offsetSet('operating_system', static function(Container $container) {
+            return new OperatingSystem();
         });
 
         return $container;

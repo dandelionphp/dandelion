@@ -2,20 +2,21 @@
 
 namespace DR\Monorepo\VersionControl;
 
+use DR\Monorepo\Environment\OperatingSystem;
+use DR\Monorepo\Environment\OperatingSystemInterface;
+use DR\Monorepo\Exception\RuntimeException;
 use DR\Monorepo\Process\ProcessFactory;
-use Exception;
-use RuntimeException;
 use function sprintf;
 use function strtolower;
 
 class SplitshLite implements SplitshLiteInterface
 {
-    protected const PHP_OS_FAMILY_DARWIN = 'Darwin';
-    protected const PHP_OS_FAMILY_LINUX = 'Linux';
+    protected const BINARY_NAME_SPLITSH_LITE = 'splitsh-lite';
 
-    protected const MACHINE_TYPE_X86_64 = 'x86_64';
-
-    protected const PATH_TO_SPLITSH_LITE = __DIR__ . '/../../../../bin/splitsh-lite';
+    /**
+     * @var \DR\Monorepo\Environment\OperatingSystemInterface
+     */
+    protected $operatingSystem;
 
     /**
      * @var \DR\Monorepo\Process\ProcessFactory
@@ -23,12 +24,23 @@ class SplitshLite implements SplitshLiteInterface
     protected $processFactory;
 
     /**
+     * @var string
+     */
+    protected $pathToBinDirectory;
+
+    /**
+     * @param \DR\Monorepo\Environment\OperatingSystemInterface $operatingSystem
      * @param \DR\Monorepo\Process\ProcessFactory $processFactory
+     * @param string $pathToBinDirectory
      */
     public function __construct(
-        ProcessFactory $processFactory
+        OperatingSystemInterface $operatingSystem,
+        ProcessFactory $processFactory,
+        string $pathToBinDirectory
     ) {
         $this->processFactory = $processFactory;
+        $this->pathToBinDirectory = $pathToBinDirectory;
+        $this->operatingSystem = $operatingSystem;
     }
 
     /**
@@ -63,16 +75,23 @@ class SplitshLite implements SplitshLiteInterface
      */
     protected function getPathToSplitshLiteBin(): string
     {
-        $machineType = php_uname('m');
+        $machineType = $this->operatingSystem->getMachineType();
 
-        if ($machineType !== static::MACHINE_TYPE_X86_64) {
-            throw new Exception(sprintf('Machine type "%s" is not supported', $machineType));
+        if ($machineType !== OperatingSystem::MACHINE_TYPE_X86_64) {
+            throw new RuntimeException(sprintf('Machine type "%s" is not supported', $machineType));
         }
 
-        if (PHP_OS_FAMILY !== static::PHP_OS_FAMILY_DARWIN && PHP_OS_FAMILY !== static::PHP_OS_FAMILY_LINUX) {
-            throw new Exception(sprintf('OS family "%s" is not supported', PHP_OS_FAMILY));
+        $osFamily = $this->operatingSystem->getFamily();
+
+        if ($osFamily !== OperatingSystem::FAMILY_DARWIN && $osFamily !== OperatingSystem::FAMILY_LINUX) {
+            throw new RuntimeException(sprintf('OS family "%s" is not supported', $osFamily));
         }
 
-        return sprintf('%s-%s', static::PATH_TO_SPLITSH_LITE, strtolower(PHP_OS_FAMILY));
+        return sprintf(
+            '%s%s-%s',
+            $this->pathToBinDirectory,
+            static::BINARY_NAME_SPLITSH_LITE,
+            strtolower($osFamily)
+        );
     }
 }

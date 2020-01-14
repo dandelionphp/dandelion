@@ -6,6 +6,7 @@ use DR\Monorepo\Exception\ConfigurationFileNotFoundException;
 use RuntimeException;
 use SplFileInfo;
 use Symfony\Component\Finder\Finder as SymfonyFinder;
+use function getcwd;
 
 class ConfigurationFinder implements ConfigurationFinderInterface
 {
@@ -32,7 +33,7 @@ class ConfigurationFinder implements ConfigurationFinderInterface
     public function find(): SplFileInfo
     {
         $this->symfonyFinder->files()
-            ->in(\getcwd())
+            ->in(getcwd())
             ->name('monorepo.json')
             ->depth('== 0');
 

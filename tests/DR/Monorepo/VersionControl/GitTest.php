@@ -183,4 +183,152 @@ class GitTest extends Unit
             $this->fail();
         } catch (Exception $e) {}
     }
+
+    /**
+     * @return void
+     */
+    public function testAddRemote(): void
+    {
+        $name = 'monorepo';
+        $url = 'git@github.com:daniel-rose/monorepo.git';
+
+        $this->processFactoryMock->expects($this->atLeastOnce())
+            ->method('create')
+            ->with(['git', 'remote', 'add', $name, $url])
+            ->willReturn($this->processMock);
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('run');
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('isSuccessful')
+            ->willReturn(true);
+
+        $this->assertEquals($this->git, $this->git->addRemote($name, $url));
+    }
+
+    /**
+     * @return void
+     */
+    public function testAddRemoteWithError(): void
+    {
+        $name = 'monorepo';
+        $url = 'git@github.com:daniel-rose/monorepo.git';
+
+        $this->processFactoryMock->expects($this->atLeastOnce())
+            ->method('create')
+            ->with(['git', 'remote', 'add', $name, $url])
+            ->willReturn($this->processMock);
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('run');
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('isSuccessful')
+            ->willReturn(false);
+
+        try {
+            $this->git->addRemote($name, $url);
+            $this->fail();
+        } catch (Exception $e) {}
+    }
+
+    /**
+     * @return void
+     */
+    public function testPull(): void
+    {
+        $remote = 'origin';
+        $branch = 'master';
+
+        $this->processFactoryMock->expects($this->atLeastOnce())
+            ->method('create')
+            ->with(['git', 'pull', $remote, $branch])
+            ->willReturn($this->processMock);
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('run');
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('isSuccessful')
+            ->willReturn(true);
+
+        $this->assertEquals($this->git, $this->git->pull($remote, $branch));
+    }
+
+    /**
+     * @return void
+     */
+    public function testPullWithError(): void
+    {
+        $remote = 'origin';
+        $branch = 'master';
+
+        $this->processFactoryMock->expects($this->atLeastOnce())
+            ->method('create')
+            ->with(['git', 'pull', $remote, $branch])
+            ->willReturn($this->processMock);
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('run');
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('isSuccessful')
+            ->willReturn(false);
+
+        try {
+            $this->git->pull($remote, $branch);
+            $this->fail();
+        } catch (Exception $e) {}
+    }
+
+
+    /**
+     * @return void
+     */
+    public function testPush(): void
+    {
+        $remote = 'test';
+        $refSpec = sprintf('%s/:refs/heads/master', \sha1($remote));
+
+        $this->processFactoryMock->expects($this->atLeastOnce())
+            ->method('create')
+            ->with(['git', 'push', $remote, $refSpec, '--tags', '--force'])
+            ->willReturn($this->processMock);
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('run');
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('isSuccessful')
+            ->willReturn(true);
+
+        $this->assertEquals($this->git, $this->git->push($remote, $refSpec, true, true));
+    }
+
+    /**
+     * @return void
+     */
+    public function testPushWithError(): void
+    {
+        $remote = 'test';
+        $refSpec = sprintf('%s/:refs/heads/master', \sha1($remote));
+
+        $this->processFactoryMock->expects($this->atLeastOnce())
+            ->method('create')
+            ->with(['git', 'push', $remote, $refSpec, '--tags', '--force'])
+            ->willReturn($this->processMock);
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('run');
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('isSuccessful')
+            ->willReturn(false);
+
+        try {
+            $this->git->push($remote, $refSpec, true, true);
+            $this->fail();
+        } catch (Exception $e) {}
+    }
 }

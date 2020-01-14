@@ -107,7 +107,7 @@ class Git implements GitInterface
         $command = [
             'git',
             'pull',
-            'remote'
+            $remote
         ];
 
         if ($localBranch !== null) {

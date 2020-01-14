@@ -114,5 +114,7 @@ class Splitter implements SplitterInterface
         $process = $this->processFactory->create($command);
 
         $process->start();
+
+        return $this;
     }
 }

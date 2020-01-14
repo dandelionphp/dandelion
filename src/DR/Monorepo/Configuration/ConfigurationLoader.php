@@ -5,7 +5,7 @@ namespace DR\Monorepo\Configuration;
 use DR\Monorepo\Exception\InvalidTypeException;
 use DR\Monorepo\Exception\IOException;
 use DR\Monorepo\Filesystem\FilesystemInterface;
-use Symfony\Component\Serializer\Serializer as SymfonySerializer;
+use Symfony\Component\Serializer\SerializerInterface;
 use function is_object;
 
 class ConfigurationLoader implements ConfigurationLoaderInterface
@@ -23,21 +23,21 @@ class ConfigurationLoader implements ConfigurationLoaderInterface
     /**
      * @var \Symfony\Component\Serializer\Serializer
      */
-    protected $symfonySerializer;
+    protected $serializer;
 
     /**
      * @param \DR\Monorepo\Configuration\ConfigurationFinderInterface $configurationFinder
      * @param \DR\Monorepo\Filesystem\FilesystemInterface $filesystem
-     * @param \Symfony\Component\Serializer\Serializer $symfonySerializer
+     * @param \Symfony\Component\Serializer\SerializerInterface $serializer
      */
     public function __construct(
         ConfigurationFinderInterface $configurationFinder,
         FilesystemInterface $filesystem,
-        SymfonySerializer $symfonySerializer
+        SerializerInterface $serializer
     ) {
         $this->configurationFinder = $configurationFinder;
         $this->filesystem = $filesystem;
-        $this->symfonySerializer = $symfonySerializer;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -57,7 +57,7 @@ class ConfigurationLoader implements ConfigurationLoaderInterface
 
         $configurationFileContent = $this->filesystem->readFile($realPathToConfigurationFile);
 
-        $configuration = $this->symfonySerializer->deserialize(
+        $configuration = $this->serializer->deserialize(
             $configurationFileContent,
             Configuration::class,
             'json'
