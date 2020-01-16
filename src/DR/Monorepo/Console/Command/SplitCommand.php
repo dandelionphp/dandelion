@@ -40,8 +40,7 @@ class SplitCommand extends Command
         $this->setName(static::NAME);
         $this->setDescription(static::DESCRIPTION);
 
-        $this->addArgument('pathToPackage', InputArgument::REQUIRED, 'Path to package in monorepo');
-        $this->addArgument('repository', InputArgument::REQUIRED, 'Split repository');
+        $this->addArgument('repositoryName', InputArgument::REQUIRED, 'Name of split repository');
         $this->addArgument('branch', InputArgument::REQUIRED, 'Branch');
     }
 
@@ -53,15 +52,14 @@ class SplitCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): ?int
     {
-        $pathToPackage = $input->getArgument('pathToPackage');
-        $repository = $input->getArgument('repository');
+        $repositoryName = $input->getArgument('repositoryName');
         $branch = $input->getArgument('branch');
 
-        if (!is_string($pathToPackage) || !is_string($repository) || !is_string($branch)) {
+        if (!is_string($repositoryName) || !is_string($branch)) {
             throw new InvalidArgumentException('Unsupported type for given arguments');
         }
 
-        $this->splitter->split($pathToPackage, $repository, $branch);
+        $this->splitter->split($repositoryName, $branch);
 
         return null;
     }

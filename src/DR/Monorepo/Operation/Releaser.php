@@ -1,22 +1,25 @@
 <?php
 
-
 namespace DR\Monorepo\Operation;
 
 use DR\Monorepo\Configuration\ConfigurationLoaderInterface;
-use DR\Monorepo\Console\Command\SplitCommand;
 use DR\Monorepo\Exception\RepositoryNotFoundException;
+use DR\Monorepo\Filesystem\FilesystemInterface;
 use DR\Monorepo\Process\ProcessFactory;
 use DR\Monorepo\VersionControl\GitInterface;
-use DR\Monorepo\VersionControl\SplitshLiteInterface;
 use function sprintf;
 
-class Splitter implements SplitterInterface
+class Releaser implements ReleaserInterface
 {
     /**
      * @var \DR\Monorepo\Configuration\ConfigurationLoaderInterface
      */
     protected $configurationLoader;
+
+    /**
+     * @var \DR\Monorepo\Filesystem\FilesystemInterface
+     */
+    protected $filesystem;
 
     /**
      * @var \DR\Monorepo\Process\ProcessFactory
@@ -29,74 +32,82 @@ class Splitter implements SplitterInterface
     protected $git;
 
     /**
-     * @var \DR\Monorepo\VersionControl\SplitshLiteInterface
-     */
-    protected $splitshLite;
-
-    /**
      * @var string
      */
     protected $binDir;
 
     /**
      * @param \DR\Monorepo\Configuration\ConfigurationLoaderInterface $configurationLoader
+     * @param \DR\Monorepo\Filesystem\FilesystemInterface $filesystem
      * @param \DR\Monorepo\Process\ProcessFactory $processFactory
      * @param \DR\Monorepo\VersionControl\GitInterface $git
-     * @param \DR\Monorepo\VersionControl\SplitshLiteInterface $splitshLite
      * @param string $binDir
      */
     public function __construct(
         ConfigurationLoaderInterface $configurationLoader,
+        FilesystemInterface $filesystem,
         ProcessFactory $processFactory,
         GitInterface $git,
-        SplitshLiteInterface $splitshLite,
         string $binDir
-    ) {
+    )
+    {
         $this->configurationLoader = $configurationLoader;
+        $this->filesystem = $filesystem;
         $this->processFactory = $processFactory;
         $this->git = $git;
-        $this->splitshLite = $splitshLite;
         $this->binDir = $binDir;
     }
 
     /**
      * @param string $repositoryName
      * @param string $branch
+     * @param string $version
      *
-     * @return \DR\Monorepo\Operation\SplitterInterface
-     *
+     * @return \DR\Monorepo\Operation\ReleaserInterface
      * @throws \Exception
      */
-    public function split(string $repositoryName, string $branch): SplitterInterface
+    public function release(
+        string $repositoryName,
+        string $branch,
+        string $version
+    ): ReleaserInterface
     {
         $configuration = $this->configurationLoader->load();
         $repositories = $configuration->getRepositories();
 
         if (!$repositories->offsetExists($repositoryName)) {
-            throw new RepositoryNotFoundException(\sprintf('Could not find repository "%s".', $repositoryName));
+            throw new RepositoryNotFoundException(sprintf('Could not find repository "%s".', $repositoryName));
         }
 
         $repository = $repositories->offsetGet($repositoryName);
+        $tempDirectory = sprintf('%s/%s/', rtrim($configuration->getPathToTempDirectory(), '/'), $repositoryName);
 
-        $this->git->addRemote($repositoryName, $repository->getUrl());
-        $sha1 = $this->splitshLite->getSha1($repository->getPath());
-        $refSpec = sprintf('%s:refs/heads/%s', $sha1, $branch);
-        $this->git->push($repositoryName, $refSpec, false, true);
+        $currentWorkingDirectory = $this->filesystem->getCurrentWorkingDirectory();
+        $this->filesystem->changeDirectory($tempDirectory);
+
+        $this->git->clone($repository->getUrl(), '.')
+            ->checkout($branch)
+            ->tag($version)
+            ->push('origin', null, true);
+
+        $this->filesystem->changeDirectory($currentWorkingDirectory)
+            ->removeDirectory($tempDirectory);
 
         return $this;
     }
 
     /**
      * @param string $branch
+     * @param string $version
      *
-     * @return \DR\Monorepo\Operation\SplitterInterface
+     * @return \DR\Monorepo\Operation\ReleaserInterface
      */
-    public function splitAll(string $branch = 'master'): SplitterInterface
+    public function releaseAll(string $branch, string $version): ReleaserInterface
     {
         $configuration = $this->configurationLoader->load();
 
         foreach ($configuration->getRepositories() as $repositoryName => $repository) {
-            $this->splitAsProcess($repositoryName, $branch);
+            $this->releaseAsProcess($repositoryName, $branch, $version);
         }
 
         return $this;
@@ -105,18 +116,22 @@ class Splitter implements SplitterInterface
     /**
      * @param string $repositoryName
      * @param string $branch
+     * @param string $version
      *
-     * @return \DR\Monorepo\Operation\SplitterInterface
+     * @return \DR\Monorepo\Operation\ReleaserInterface
      */
-    protected function splitAsProcess(
+    protected function releaseAsProcess(
         string $repositoryName,
-        string $branch
-    ): SplitterInterface {
+        string $branch,
+        string $version
+    ): ReleaserInterface
+    {
         $command = $command = [
             sprintf('%smonorepo', $this->binDir),
-            SplitCommand::NAME,
+            'release',
             $repositoryName,
-            $branch
+            $branch,
+            $version
         ];
 
         $process = $this->processFactory->create($command);

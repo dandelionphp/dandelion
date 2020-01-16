@@ -8,10 +8,11 @@ interface GitInterface
 {
     /**
      * @param string $repository
+     * @param string|null $directory
      *
      * @return \DR\Monorepo\VersionControl\GitInterface
      */
-    public function clone(string $repository): GitInterface;
+    public function clone(string $repository, string $directory = null): GitInterface;
 
     /**
      * @param string $branch

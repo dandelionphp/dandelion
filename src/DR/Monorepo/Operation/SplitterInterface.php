@@ -6,13 +6,12 @@ namespace DR\Monorepo\Operation;
 interface SplitterInterface
 {
     /**
-     * @param string $pathToPackage
-     * @param string $repository
+     * @param string $repositoryName
      * @param string $branch
      *
      * @return \DR\Monorepo\Operation\SplitterInterface
      */
-    public function split(string $pathToPackage, string $repository, string $branch): SplitterInterface;
+    public function split(string $repositoryName, string $branch): SplitterInterface;
 
     /**
      * @param string $branch

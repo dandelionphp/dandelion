@@ -4,27 +4,43 @@ namespace DR\Monorepo\Operation;
 
 use Codeception\Test\Unit;
 use DR\Monorepo\Configuration\Configuration;
-use DR\Monorepo\Configuration\ConfigurationLoader;
+use DR\Monorepo\Configuration\ConfigurationInterface;
+use DR\Monorepo\Configuration\ConfigurationLoaderInterface;
+use DR\Monorepo\Configuration\RepositoryInterface;
 use DR\Monorepo\Console\Command\SplitCommand;
 use DR\Monorepo\Process\ProcessFactory;
-use DR\Monorepo\VersionControl\Git;
-use DR\Monorepo\VersionControl\SplitshLite;
+use DR\Monorepo\VersionControl\GitInterface;
+use DR\Monorepo\VersionControl\SplitshLiteInterface;
 use Symfony\Component\Process\Process;
-use function key;
 use function sha1;
 use function sprintf;
 
 class SplitterTest extends Unit
 {
     /**
-     * @var \DR\Monorepo\Operation\Splitter
+     * @var \DR\Monorepo\Operation\SplitterInterface
      */
     protected $splitter;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\DR\Monorepo\Configuration\ConfigurationLoader
+     * @var \PHPUnit\Framework\MockObject\MockObject|\DR\Monorepo\Configuration\ConfigurationLoaderInterface
      */
     protected $configurationLoaderMock;
+
+    /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|\DR\Monorepo\Configuration\ConfigurationInterface
+     */
+    protected $configurationMock;
+
+    /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|\ArrayObject
+     */
+    protected $repositoriesMock;
+
+    /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|\DR\Monorepo\Configuration\RepositoryInterface
+     */
+    protected $repositoryMock;
 
     /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\DR\Monorepo\Process\ProcessFactory
@@ -37,12 +53,12 @@ class SplitterTest extends Unit
     protected $processMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\DR\Monorepo\VersionControl\Git
+     * @var \PHPUnit\Framework\MockObject\MockObject|\DR\Monorepo\VersionControl\GitInterface
      */
     protected $gitMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\DR\Monorepo\VersionControl\SplitshLite
+     * @var \PHPUnit\Framework\MockObject\MockObject|\DR\Monorepo\VersionControl\SplitshLiteInterface
      */
     protected $splitshLiteMock;
 
@@ -60,7 +76,19 @@ class SplitterTest extends Unit
 
         $this->pathToBinDirectory = '/path/To/Bin/Directory';
 
-        $this->configurationLoaderMock = $this->getMockBuilder(ConfigurationLoader::class)
+        $this->configurationLoaderMock = $this->getMockBuilder(ConfigurationLoaderInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->configurationMock = $this->getMockBuilder(ConfigurationInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->repositoriesMock = $this->getMockBuilder(RepositoryInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->repositoryMock = $this->getMockBuilder(RepositoryInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -72,11 +100,11 @@ class SplitterTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->gitMock = $this->getMockBuilder(Git::class)
+        $this->gitMock = $this->getMockBuilder(GitInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->splitshLiteMock = $this->getMockBuilder(SplitshLite::class)
+        $this->splitshLiteMock = $this->getMockBuilder(SplitshLiteInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -90,22 +118,43 @@ class SplitterTest extends Unit
     }
 
     /**
+     * @throws \Exception
+     *
      * @return void
      */
     public function testSplit(): void
     {
-        $pathToPackage = '/path/to/package';
-        $repository = 'git@github.com:user/package.git';
+        $repositoryPath = '/path/to/package';
+        $repositoryName = 'package';
+        $repositoryUrl = 'git@github.com:user/package.git';
         $branch = 'master';
         $sha1 = sha1('Lorem Ipsum');
 
+        $this->configurationLoaderMock->expects($this->atLeastOnce())
+            ->method('load')
+            ->willReturn($this->configurationMock);
+
+        $this->configurationMock->expects($this->atLeastOnce())
+            ->method('getRepositories')
+            ->willReturn($this->configurationMock);
+
+        $this->repositoryMocks->offsetGet($repositoryName)
+            ->expects($this->atLeastOnce())
+            ->method('getUrl')
+            ->willReturn($repositoryUrl);
+
+        $this->repositoryMocks->offsetGet($repositoryName)
+            ->expects($this->atLeastOnce())
+            ->method('getPath')
+            ->willReturn($repositoryPath);
+
         $this->gitMock->expects($this->atLeastOnce())
             ->method('addRemote')
-            ->with($pathToPackage, $repository);
+            ->with($repositoryName, $repositoryUrl);
 
         $this->splitshLiteMock->expects($this->atLeastOnce())
             ->method('getSha1')
-            ->with($pathToPackage)
+            ->with($repositoryPath)
             ->willReturn($sha1);
 
         $this->gitMock->expects($this->atLeastOnce())
