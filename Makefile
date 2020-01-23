@@ -8,3 +8,9 @@ phpstan:
 
 codeception:
 	./vendor/bin/codecept run
+
+phpmd:
+	./vendor/bin/phpmd ./src xml cleancode,codesize,controversial,design --exclude DandelionServiceProvider
+
+phpcpd:
+	./vendor/bin/phpcpd ./src

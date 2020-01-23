@@ -5,6 +5,7 @@ suites:
 settings:
     shuffle: true
     lint: true
+    bootstrap: _bootstrap.php
 
 coverage:
     enabled: true

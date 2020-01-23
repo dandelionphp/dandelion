@@ -18,4 +18,4 @@ require_once $rootDir . '/vendor/autoload.php';
 $container = (new \Pimple\Container())
     ->register(new \DR\Monorepo\MonorepoServiceProvider());
 
-//(new \DR\Monorepo\Console($container))->run();
+(new \DR\Monorepo\Console($container))->run();
