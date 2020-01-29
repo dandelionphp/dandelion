@@ -75,29 +75,6 @@ class FilesystemTest extends Unit
      * @skip getcwd is hard to test
      * @return void
      */
-    public function testGetCurrentWorkingDirectoryWithWrongPermission(): void
-    {
-        $testingDirectory = codecept_output_dir('testGetCurrentWorkingDirectoryWithWrongPermission');
-
-        mkdir($testingDirectory, 0755, true);
-        chdir($testingDirectory);
-        chmod($testingDirectory, 0200);
-
-        try {
-            $currentWorkingDirectory = $this->filesystem->getCurrentWorkingDirectory();
-        } catch (Exception $e) {
-            $currentWorkingDirectory = null;
-        }
-
-        chmod($testingDirectory, 0755);
-        rmdir($testingDirectory);
-
-        $this->assertEquals(null, $currentWorkingDirectory);
-    }
-
-    /**
-     * @return void
-     */
     public function testChangeDirectory(): void
     {
         $currentWorkingDirectory = getcwd();
