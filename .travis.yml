@@ -1,0 +1,38 @@
+language: php
+
+php:
+  - 7.3
+
+git:
+  depth: 5
+
+cache:
+  directories:
+    - $HOME/.composer/cache
+
+services:
+  - docker
+
+before_install:
+  - phpenv config-rm xdebug.ini || echo "xdebug not available"
+
+before_script:
+  # make sure git tests do not complain about user/email not being set
+  - git config --global user.name travis-ci
+  - git config --global user.email travis@example.com
+
+jobs:
+  include:
+    - stage: test
+      script: echo "test"
+    - stage: build
+      script: echo "build"
+
+deploy:
+  provider: releases
+  api_key: $GITHUB_TOKEN
+  file: composer.phar
+  skip_cleanup: true
+  on:
+    tags: true
+    repo: dandelionphp/dandelion

@@ -1,4 +1,4 @@
-.PHONY: phpcs phpstan codeception
+.PHONY: phpcs phpstan codeception test
 
 phpcs:
 	./vendor/bin/phpcs --standard=./vendor/squizlabs/php_codesniffer/src/Standards/PSR12/ruleset.xml ./src/
@@ -14,3 +14,6 @@ phpmd:
 
 phpcpd:
 	./vendor/bin/phpcpd ./src
+
+test: phpcs phpstan codeception phpmd phpcpd
+	@echo "Run CI suite"
