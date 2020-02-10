@@ -115,7 +115,7 @@ class Splitter implements SplitterInterface
         string $branch
     ): SplitterInterface {
         $command = $command = [
-            sprintf('%smonorepo', $this->binDir),
+            sprintf('%sdandelion', $this->binDir),
             SplitCommand::NAME,
             $repositoryName,
             $branch

@@ -16,6 +16,6 @@ if (!\file_exists($rootDir . '/vendor/autoload.php')) {
 require_once $rootDir . '/vendor/autoload.php';
 
 $container = (new \Pimple\Container())
-    ->register(new \DR\Monorepo\MonorepoServiceProvider());
+    ->register(new \Dandelion\DandelionServiceProvider());
 
-(new \DR\Monorepo\Console($container))->run();
+(new \Dandelion\Console\Application($container))->run();

@@ -72,7 +72,6 @@ class FilesystemTest extends Unit
     }
 
     /**
-     * @skip getcwd is hard to test
      * @return void
      */
     public function testChangeDirectory(): void

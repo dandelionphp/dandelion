@@ -128,7 +128,7 @@ class Releaser implements ReleaserInterface
         string $version
     ): ReleaserInterface {
         $command = $command = [
-            sprintf('%smonorepo', $this->binDir),
+            sprintf('%sdandelion', $this->binDir),
             'release',
             $repositoryName,
             $branch,
