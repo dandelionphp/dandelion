@@ -1,7 +1,13 @@
-.PHONY: phpcs phpstan codeception test install
+.PHONY: phpcs phpstan codeception test install install-dev bundle
 
 install:
+	composer install --no-dev
+
+install-dev:
 	composer install
+
+bundle: install
+	box compile
 
 phpcs:
 	./vendor/bin/phpcs --standard=./vendor/squizlabs/php_codesniffer/src/Standards/PSR12/ruleset.xml ./src/
@@ -18,5 +24,5 @@ phpmd:
 phpcpd:
 	./vendor/bin/phpcpd ./src
 
-test: phpcs phpstan codeception phpmd phpcpd
+test: install-dev phpcs phpstan codeception phpmd phpcpd
 	@echo "Run CI suite"

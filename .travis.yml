@@ -1,7 +1,4 @@
-language: php
-
-php:
-  - 7.3
+language: minimal
 
 git:
   depth: 5
@@ -16,9 +13,6 @@ services:
 before_install:
   - phpenv config-rm xdebug.ini || echo "xdebug not available"
 
-install:
-  - make install
-
 before_script:
   # make sure git tests do not complain about user/email not being set
   - git config --global user.name travis-ci
@@ -27,15 +21,25 @@ before_script:
 jobs:
   include:
     - stage: test
-      script: make test
+      script: docker run -it --rm -v $PWD:/tmp -w /tmp dandelionphp/php:7.4-cli-alpine-dev -c make test
+    - stage: bundle
+      script: docker run -it --rm -v $PWD:/tmp -w="/tmp" dandelionphp/php:7.4-cli-alpine-dev -c make bundle
     - stage: build
-      script: echo "build"
+      script: 
+        - docker build -t . dandelion
+        - docker tag dandelion dandelionphp/dandelion:${TRAVIS_TAG}
+        - docker tag dandelion dandelionphp/dandelion:latest
+      if: tag =~ ^\d+\.\d+\.\d+$
 
 deploy:
-  provider: releases
-  api_key: $GITHUB_TOKEN
-  file: composer.phar
-  skip_cleanup: true
-  on:
-    tags: true
-    repo: dandelionphp/dandelion
+  - provider: releases
+    api_key: $GITHUB_TOKEN
+    file: bin/dandelion.phar
+    skip_cleanup: true
+    on:
+      tags: true
+      repo: dandelionphp/dandelion
+  - provider: script
+    script: bash scripts/docker.sh
+    on: 
+      tags: true
