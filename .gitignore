@@ -1,4 +1,10 @@
+# System
 .idea
+.DS_Store
 
+# Language
 composer.lock
 vendor
+
+# Binaries
+bin/dandelion.phar

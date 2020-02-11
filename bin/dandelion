@@ -3,17 +3,23 @@
 
 declare(strict_types=1);
 
-$rootDir = \realpath(__DIR__ . '/..');
+(static function (): void {
+  if (file_exists($autoload = __DIR__.'/../../../autoload.php')) {
+      // Is installed via Composer
+      include_once $autoload;
 
-if (!\file_exists($rootDir . '/vendor/autoload.php')) {
-    $rootDir = \realpath(__DIR__ . '/../..');
-}
+      return;
+  }
 
-if (!\file_exists($rootDir . '/vendor/autoload.php')) {
-    $rootDir = \realpath(__DIR__ . '/../../../../');
-}
+  if (file_exists($autoload = __DIR__.'/../vendor/autoload.php')) {
+      // Is installed locally
+      include_once $autoload;
 
-require_once $rootDir . '/vendor/autoload.php';
+      return;
+  }
+
+  throw new RuntimeException('Unable to find the Composer autoloader.');
+})();
 
 $container = (new \Pimple\Container())
     ->register(new \Dandelion\DandelionServiceProvider());
