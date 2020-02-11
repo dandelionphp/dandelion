@@ -9,13 +9,12 @@ install-dev:
 bundle: install
 	box compile
 
-docker-tag: docker-tag
+docker-tag: docker-build
 	docker tag dandelion dandelionphp/dandelion:$(TRAVIS_TAG)
-    docker tag dandelion dandelionphp/dandelion:latest
 
 docker-build:
 	docker build -t dandelion .
-        
+
 docker-login:
 	echo "$(DOCKER_PASSWORD)" | docker login -u "$(DOCKER_USERNAME)" --password-stdin
 
