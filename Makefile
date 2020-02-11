@@ -14,7 +14,7 @@ docker-tag: docker-tag
     docker tag dandelion dandelionphp/dandelion:latest
 
 docker-build:
-	docker build -t . dandelion
+	docker build -t dandelion .
         
 docker-login:
 	echo "$(DOCKER_PASSWORD)" | docker login -u "$(DOCKER_USERNAME)" --password-stdin
