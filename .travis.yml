@@ -21,12 +21,11 @@ before_script:
 jobs:
   include:
     - stage: test
-      script: docker run --rm -v $PWD:/home/dandelion/app -w /home/dandelion/app dandelionphp/php:7.4-cli-alpine-dev /bin/sh -c "make test" 
+      script: docker run --rm -v $PWD:/home/dandelion/app -w /home/dandelion/app --user=root dandelionphp/php:7.4-cli-alpine-dev /bin/sh -c "make test"
     - stage: bundle
-      script: docker run --rm -v $PWD:/home/dandelion/app -w /home/dandelion/app dandelionphp/php:7.4-cli-alpine-dev /bin/sh -c "make bundle"
+      script: docker run --rm -v $PWD:/home/dandelion/app -w /home/dandelion/app --user=root dandelionphp/php:7.4-cli-alpine-dev /bin/sh -c "make bundle"
     - stage: build
       script: make docker-build
-      if: tag =~ ^\d+\.\d+\.\d+$
 
 deploy:
   - provider: releases
@@ -38,5 +37,5 @@ deploy:
       repo: dandelionphp/dandelion
   - provider: script
     script: make docker-push
-    on: 
+    on:
       tags: true
