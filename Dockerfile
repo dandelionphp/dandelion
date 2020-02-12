@@ -4,4 +4,4 @@ COPY --chown=dandelion:dandelion bin/dandelion.phar /usr/bin/dandelion
 
 RUN set -eux; \
   chmod +x /usr/bin/dandelion; \
-  dandelion --version
+  dandelion --version --no-interaction --ansi
