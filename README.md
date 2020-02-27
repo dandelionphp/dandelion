@@ -8,6 +8,7 @@ Dandelion is a wrapper for the amazing Git Split Tree utility [https://github.co
 Set up a repository which includes all your packages source code and the dandelion configuration file. 
 
 Example structure:  
+```
 .  
 +-- dandelion.json  
 +-- Package1  
@@ -15,6 +16,7 @@ Example structure:
 +-- Package2    
 |   +-- ...  
 +-- tmp  
+```
   
 Next you want to create read-only repositories for your packages in order to split and release into those repositories.
 The read-only repositories will be the one you link to in your dandelion configuration file.
