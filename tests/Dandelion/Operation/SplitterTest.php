@@ -275,7 +275,7 @@ class SplitterTest extends Unit
         $this->processFactoryMock->expects($this->atLeastOnce())
             ->method('create')
             ->with([
-                sprintf('%smonorepo', $this->pathToBinDirectory),
+                sprintf('%sdandelion', $this->pathToBinDirectory),
                 SplitCommand::NAME,
                 $repositoryName,
                 $branch

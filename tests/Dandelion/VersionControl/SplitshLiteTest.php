@@ -82,7 +82,7 @@ class SplitshLiteTest extends Unit
             '%s%s-%s',
             $this->pathToBinDirectory,
             'splitsh-lite',
-            strtolower(PHP_OS_FAMILY)
+            strtolower(OperatingSystem::FAMILY_DARWIN)
         );
 
         $this->operatingSystemMock->expects($this->atLeastOnce())
@@ -206,7 +206,7 @@ class SplitshLiteTest extends Unit
             '%s%s-%s',
             $this->pathToBinDirectory,
             'splitsh-lite',
-            strtolower(PHP_OS_FAMILY)
+            strtolower(OperatingSystem::FAMILY_DARWIN)
         );
 
         $this->operatingSystemMock->expects($this->atLeastOnce())

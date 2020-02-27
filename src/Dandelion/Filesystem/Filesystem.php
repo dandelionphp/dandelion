@@ -49,7 +49,9 @@ class Filesystem implements FilesystemInterface
         $currentWorkingDirectory = getcwd();
 
         if (!$currentWorkingDirectory) {
+            // @codeCoverageIgnoreStart
             throw new IOException(sprintf('Could not get current working directory.'));
+            // @codeCoverageIgnoreEnd
         }
 
         return rtrim($currentWorkingDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
