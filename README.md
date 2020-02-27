@@ -9,7 +9,7 @@ Set up a repository which includes all your packages source code and the dandeli
 
 RespositoryRoot
 - Package1
-- Package2
+- Package2  
 dandelion.json
 
 Next you want to create read-only repositories for your packages in order to split and release into those repositories.
@@ -26,7 +26,7 @@ Create a temp folder in your repository root where the splitted repositories wil
 ### Using PHAR
 Download the latest release from the [Github](https://github.com/dandelionphp/dandelion/releases).
 
-`php dandelion.phar split:all master`
+`php dandelion.phar split:all master`  
 `php dandelion.phar release:all master 1.0.0`
 
 ## Example Config
