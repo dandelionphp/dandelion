@@ -39,6 +39,11 @@ class DandelionServiceProviderTest extends Unit
     protected $expectedBinDir;
 
     /**
+     * @var string
+     */
+    protected $expectedResourcesDir;
+
+    /**
      * @return void
      */
     protected function _before(): void
@@ -48,6 +53,7 @@ class DandelionServiceProviderTest extends Unit
         $this->expectedRootDir = codecept_root_dir('src/Dandelion/../../../');
         $this->expectedSrcDir = sprintf('%ssrc%s',$this->expectedRootDir, DIRECTORY_SEPARATOR);
         $this->expectedBinDir = sprintf('%sbin%s',$this->expectedRootDir, DIRECTORY_SEPARATOR);
+        $this->expectedResourcesDir = sprintf('%sresources%s',$this->expectedRootDir, DIRECTORY_SEPARATOR);
 
         $this->container = new Container();
 
@@ -69,6 +75,9 @@ class DandelionServiceProviderTest extends Unit
 
         $this->assertTrue($this->container->offsetExists('bin_dir'));
         $this->assertEquals($this->expectedBinDir, $this->container->offsetGet('bin_dir'));
+
+        $this->assertTrue($this->container->offsetExists('resources_dir'));
+        $this->assertEquals($this->expectedResourcesDir, $this->container->offsetGet('resources_dir'));
 
         $this->assertTrue($this->container->offsetExists('commands'));
         $this->assertCount(4, $this->container->offsetGet('commands'));

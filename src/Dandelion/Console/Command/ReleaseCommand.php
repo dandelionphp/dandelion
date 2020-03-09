@@ -16,7 +16,7 @@ use function is_string;
 class ReleaseCommand extends Command
 {
     public const NAME = 'release';
-    public const DESCRIPTION = 'Release package.';
+    public const DESCRIPTION = 'Releases package.';
 
     /**
      * @var \Dandelion\Operation\ReleaserInterface
@@ -54,7 +54,7 @@ class ReleaseCommand extends Command
      *
      * @return int|null
      */
-    protected function execute(InputInterface $input, OutputInterface $output): ?int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $repositoryName = $input->getArgument('repositoryName');
         $branch = $input->getArgument('branch');
@@ -66,6 +66,6 @@ class ReleaseCommand extends Command
 
         $this->releaser->release($repositoryName, $branch, $version);
 
-        return null;
+        return 0;
     }
 }

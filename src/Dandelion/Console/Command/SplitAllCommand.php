@@ -16,7 +16,7 @@ use function is_string;
 class SplitAllCommand extends Command
 {
     public const NAME = 'split:all';
-    public const DESCRIPTION = 'Split all packages from mono to split.';
+    public const DESCRIPTION = 'Splits all packages from mono to split.';
 
     /**
      * @var \Dandelion\Operation\SplitterInterface
@@ -52,7 +52,7 @@ class SplitAllCommand extends Command
      *
      * @return int|null
      */
-    protected function execute(InputInterface $input, OutputInterface $output): ?int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $branch = $input->getArgument('branch');
 
@@ -62,6 +62,6 @@ class SplitAllCommand extends Command
 
         $this->splitter->splitAll($branch);
 
-        return null;
+        return 0;
     }
 }

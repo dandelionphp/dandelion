@@ -1,4 +1,4 @@
-.PHONY: phpcs phpstan codeception test install install-dev bundle docker-tag docker-login docker-push docker-build
+.PHONY: phpcs phpstan codeception test install install-dev bundle docker-tag docker-login docker-push docker-build grumphp
 
 install:
 	composer install --no-dev
@@ -36,5 +36,7 @@ phpmd:
 
 phpcpd:
 	./vendor/bin/phpcpd ./src
+
+grumphp: phpcs phpstan codeception phpmd phpcpd
 
 test: install-dev phpcs phpstan codeception phpmd phpcpd

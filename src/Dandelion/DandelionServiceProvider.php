@@ -6,10 +6,12 @@ namespace Dandelion;
 
 use Dandelion\Configuration\ConfigurationFinder;
 use Dandelion\Configuration\ConfigurationLoader;
+use Dandelion\Configuration\ConfigurationValidator;
 use Dandelion\Console\Command\ReleaseAllCommand;
 use Dandelion\Console\Command\ReleaseCommand;
 use Dandelion\Console\Command\SplitAllCommand;
 use Dandelion\Console\Command\SplitCommand;
+use Dandelion\Console\Command\ValidateCommand;
 use Dandelion\Environment\OperatingSystem;
 use Dandelion\Filesystem\Filesystem;
 use Dandelion\Operation\Releaser;
@@ -19,6 +21,7 @@ use Dandelion\VersionControl\Git;
 use Dandelion\VersionControl\SplitshLite;
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
+use Swaggest\JsonSchema\Schema;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
@@ -49,6 +52,7 @@ class DandelionServiceProvider implements ServiceProviderInterface
         $container = $this->registerSplitshLite($container);
         $container = $this->registerSplitter($container);
         $container = $this->registerReleaser($container);
+        $container = $this->registerConfigurationValidator($container);
 
         $this->registerCommands($container);
     }
@@ -69,6 +73,10 @@ class DandelionServiceProvider implements ServiceProviderInterface
 
         $container->offsetSet('src_dir', static function () use ($rootDir) {
             return sprintf('%ssrc%s', $rootDir, DIRECTORY_SEPARATOR);
+        });
+
+        $container->offsetSet('resources_dir', static function () use ($rootDir) {
+            return sprintf('%sresources%s', $rootDir, DIRECTORY_SEPARATOR);
         });
 
         $container->offsetSet('bin_dir', static function () use ($rootDir) {
@@ -93,6 +101,7 @@ class DandelionServiceProvider implements ServiceProviderInterface
                 $self->createSplitAllCommand($container),
                 $self->createReleaseCommand($container),
                 $self->createReleaseAllCommand($container),
+                $self->createValidateCommand($container),
             ];
         });
 
@@ -192,8 +201,27 @@ class DandelionServiceProvider implements ServiceProviderInterface
      */
     protected function registerOperatingSystem(Container $container): Container
     {
-        $container->offsetSet('operating_system', static function (Container $container) {
+        $container->offsetSet('operating_system', static function () {
             return new OperatingSystem();
+        });
+
+        return $container;
+    }
+
+    /**
+     * @param \Pimple\Container $container
+     *
+     * @return \Pimple\Container
+     */
+    protected function registerConfigurationValidator(Container $container): Container
+    {
+        $container->offsetSet('configuration_validator', static function (Container $container) {
+            $pathToDandelionSchema = sprintf('%sdandelion.schema.json', $container->offsetGet('resources_dir'));
+
+            return new ConfigurationValidator(
+                $container->offsetGet('configuration_loader'),
+                Schema::import($pathToDandelionSchema)
+            );
         });
 
         return $container;
@@ -322,5 +350,10 @@ class DandelionServiceProvider implements ServiceProviderInterface
     protected function createReleaseAllCommand(Container $container): ReleaseAllCommand
     {
         return new ReleaseAllCommand($container->offsetGet('releaser'));
+    }
+
+    protected function createValidateCommand(Container $container): ValidateCommand
+    {
+        return new ValidateCommand($container->offsetGet('configuration_validator'));
     }
 }

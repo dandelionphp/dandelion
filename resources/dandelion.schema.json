@@ -1,0 +1,66 @@
+{
+  "definitions": {
+    "repository": {
+      "$id": "#repository",
+      "type": "object",
+      "title": "Split-Repository",
+      "required": [
+        "url",
+        "path"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "title": "Url",
+          "description": "Url to git repository.",
+          "default": "",
+          "examples": [
+            "https://github.com/organisation/config.git"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "title": "Path",
+          "description": "Local path to repository.",
+          "default": "",
+          "examples": [
+            "/pathToMonoRepository/packages/config"
+          ]
+        }
+      }
+    },
+    "repositories": {
+      "$id": "#repositories",
+      "type": "object",
+      "title": "Split-Repositories",
+      "description": "A list of split repositories.",
+      "patternProperties": {
+        "(^[a-z]|[A-Z0-9])[a-z]*": {
+          "$ref": "#repository"
+        }
+      }
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/dandelionphp/dandelion/master/resources/dandelion.schema.json",
+  "type": "object",
+  "title": "Dandelion Configuration",
+  "required": [
+    "repositories",
+    "pathToTempDirectory"
+  ],
+  "properties": {
+    "repositories": {
+      "$ref": "#repositories"
+    },
+    "pathToTempDirectory": {
+      "$id": "/properties/id",
+      "type": "string",
+      "title": "Path to temp directory",
+      "default": "",
+      "examples": [
+        "/tmp/"
+      ]
+    }
+  }
+}
