@@ -29,7 +29,7 @@ phpstan:
 	./vendor/bin/phpstan analyse -l 7 ./src
 
 codeception:
-	./vendor/bin/codecept run
+	./vendor/bin/codecept run --coverage --coverage-xml --coverage-html
 
 phpmd:
 	./vendor/bin/phpmd ./src xml cleancode,codesize,controversial,design --exclude DandelionServiceProvider

@@ -89,7 +89,7 @@ class ReleaseAllCommandTest extends Unit
             ->method('releaseAll')
             ->with($branch, $version);
 
-        $this->assertEquals(null, $this->releaseAllCommand->run($this->inputMock, $this->outputMock));
+        $this->assertEquals(0, $this->releaseAllCommand->run($this->inputMock, $this->outputMock));
     }
 
     /**

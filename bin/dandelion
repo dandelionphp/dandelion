@@ -3,23 +3,27 @@
 
 declare(strict_types=1);
 
-(static function (): void {
-  if (file_exists($autoload = __DIR__.'/../../../autoload.php')) {
-      // Is installed via Composer
-      include_once $autoload;
+$rootDir = null;
+$currentBinDir = \rtrim(__DIR__, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+$possibleRootDirs = [
+    $currentBinDir . \str_repeat(\sprintf('..%s', DIRECTORY_SEPARATOR), 1),
+    $currentBinDir . \str_repeat(\sprintf('..%s', DIRECTORY_SEPARATOR), 2),
+    $currentBinDir . \str_repeat(\sprintf('..%s', DIRECTORY_SEPARATOR), 4),
+];
 
-      return;
-  }
+foreach($possibleRootDirs as $possibleRootDirIndex => $possibleRootDir) {
+    $rootDir = $possibleRootDir;
+    $pathToAutoloadPhp = \sprintf('%svendor%sautoload.php', $rootDir, DIRECTORY_SEPARATOR);
 
-  if (file_exists($autoload = __DIR__.'/../vendor/autoload.php')) {
-      // Is installed locally
-      include_once $autoload;
+    if (\file_exists($pathToAutoloadPhp)) {
+        require_once $pathToAutoloadPhp;
+        break;
+    }
 
-      return;
-  }
-
-  throw new RuntimeException('Unable to find the Composer autoloader.');
-})();
+    if ((count($possibleRootDirs) - 1) === $possibleRootDirIndex) {
+        throw new \RuntimeException('Could not load autoload.php.');
+    }
+}
 
 $container = (new \Pimple\Container())
     ->register(new \Dandelion\DandelionServiceProvider());

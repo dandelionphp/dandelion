@@ -90,7 +90,7 @@ class ReleaseCommandTest extends Unit
             ->method('release')
             ->with($repositoryName, $branch, $version);
 
-        $this->assertEquals(null, $this->releaseCommand->run($this->inputMock, $this->outputMock));
+        $this->assertEquals(0, $this->releaseCommand->run($this->inputMock, $this->outputMock));
     }
 
     /**

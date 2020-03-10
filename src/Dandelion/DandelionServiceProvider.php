@@ -65,7 +65,7 @@ class DandelionServiceProvider implements ServiceProviderInterface
     protected function registerDirectoryPaths(Container $container): Container
     {
         $rootDir = rtrim(__DIR__, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR
-            . str_repeat('..' . DIRECTORY_SEPARATOR, 3);
+            . str_repeat('..' . DIRECTORY_SEPARATOR, 2);
 
         $container->offsetSet('root_dir', static function () use ($rootDir) {
             return $rootDir;

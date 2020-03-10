@@ -88,7 +88,7 @@ class SplitAllCommandTest extends Unit
             ->method('splitAll')
             ->with($branch);
 
-        $this->assertEquals(null, $this->splitAllCommand->run($this->inputMock, $this->outputMock));
+        $this->assertEquals(0, $this->splitAllCommand->run($this->inputMock, $this->outputMock));
     }
 
     /**

@@ -3,10 +3,11 @@
 namespace Dandelion\Console\Command;
 
 use Dandelion\Configuration\ConfigurationValidatorInterface;
-use Exception;
+use Dandelion\Exception\ConfigurationNotValidException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+
 use function sprintf;
 
 class ValidateCommand extends Command
@@ -40,18 +41,18 @@ class ValidateCommand extends Command
      * @param \Symfony\Component\Console\Input\InputInterface $input
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      *
-     * @return int|null
+     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
             $this->configurationValidator->validate();
-        } catch (Exception $e) {
-            $output->write(sprintf('<error>%s</error>', $e->getMessage()));
+        } catch (ConfigurationNotValidException $e) {
+            $output->writeln(sprintf('<error>%s</error>', $e->getMessage()));
             return 1;
         }
 
-        $output->write(sprintf('<info>%s</info>', 'Configuration is valid.'));
+        $output->writeln(sprintf('<info>%s</info>', 'Configuration is valid.'));
 
         return 0;
     }
