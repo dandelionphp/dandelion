@@ -1,4 +1,7 @@
-.PHONY: phpcs phpstan codeception test install install-dev bundle docker-tag docker-login docker-push docker-build grumphp
+.PHONY: phpcs phpstan codeception test install install-dev bundle docker-tag docker-login docker-push docker-build grumphp update
+
+update:
+	composer update
 
 install:
 	composer install --no-dev
