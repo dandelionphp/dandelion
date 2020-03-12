@@ -26,6 +26,15 @@
           "examples": [
             "/pathToMonoRepository/packages/config"
           ]
+        },
+        "version": {
+          "type": "string",
+          "title": "Version",
+          "description": "Version for repository.",
+          "default": "",
+          "examples": [
+            "1.0.0"
+          ]
         }
       }
     },

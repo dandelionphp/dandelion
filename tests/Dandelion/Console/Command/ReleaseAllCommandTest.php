@@ -76,18 +76,15 @@ class ReleaseAllCommandTest extends Unit
     public function testRun(): void
     {
         $branch = 'master';
-        $version = '1.0.0';
 
         $this->inputMock->expects($this->atLeastOnce())
             ->method('getArgument')
-            ->withConsecutive(['branch'], ['version'])
-            ->willReturnOnConsecutiveCalls(
-                $branch, $version
-            );
+            ->with('branch')
+            ->willReturn($branch);
 
         $this->releaserMock->expects($this->atLeastOnce())
             ->method('releaseAll')
-            ->with($branch, $version);
+            ->with($branch);
 
         $this->assertEquals(0, $this->releaseAllCommand->run($this->inputMock, $this->outputMock));
     }
@@ -98,14 +95,11 @@ class ReleaseAllCommandTest extends Unit
     public function testRunWithInvalidArgument(): void
     {
         $branch = 1;
-        $version = '1.0.0';
 
         $this->inputMock->expects($this->atLeastOnce())
             ->method('getArgument')
-            ->withConsecutive(['branch'], ['version'])
-            ->willReturnOnConsecutiveCalls(
-                $branch, $version
-            );
+            ->with('branch')
+            ->willReturn($branch);
 
         $this->releaserMock->expects($this->never())
             ->method('releaseAll');

@@ -130,12 +130,13 @@ class ReleaserTest extends Unit
      */
     public function testRelease(): void
     {
-        $pathToTempDirectory = '/path/to/tempDirectory/';
-        $pathToCurrentWorkingDirectory = '/path/to/currentWorkingDirectory/';
         $repositoryName = 'package';
         $repositoryUrl = 'git@github.com:user/package.git';
         $branch = 'master';
         $version = '1.0.0';
+        $pathToTempDirectory = '/path/to/tempDirectory/';
+        $pathToCurrentWorkingDirectory = '/path/to/currentWorkingDirectory/';
+        $pathToRepositoryTempDirectory = sprintf('%s%s%s', $pathToTempDirectory, $repositoryName, DIRECTORY_SEPARATOR);
 
         $this->configurationLoaderMock->expects($this->atLeastOnce())
             ->method('load')
@@ -168,7 +169,8 @@ class ReleaserTest extends Unit
             ->withConsecutive(
                 [
                     sprintf('%s%s%s', $pathToTempDirectory, $repositoryName, DIRECTORY_SEPARATOR)
-                ], [
+                ],
+                [
                     $pathToCurrentWorkingDirectory
                 ]
             )
@@ -188,6 +190,15 @@ class ReleaserTest extends Unit
             ->with($branch)
             ->willReturn($this->gitMock);
 
+        $this->repositoryMock->expects($this->atLeastOnce())
+            ->method('getVersion')
+            ->willReturn($version);
+
+        $this->gitMock->expects($this->atLeastOnce())
+            ->method('describeClosestTag')
+            ->with($version)
+            ->willReturn(null);
+
         $this->gitMock->expects($this->atLeastOnce())
             ->method('tag')
             ->with($version)
@@ -198,9 +209,14 @@ class ReleaserTest extends Unit
             ->with('origin')
             ->willReturn($this->gitMock);
 
+        $this->filesystemMock->expects($this->atLeastOnce())
+            ->method('removeDirectory')
+            ->with($pathToRepositoryTempDirectory)
+            ->willReturn($this->filesystemMock);
+
         $this->assertEquals(
             $this->releaser,
-            $this->releaser->release($repositoryName, $branch, $version)
+            $this->releaser->release($repositoryName, $branch)
         );
     }
 
@@ -211,7 +227,6 @@ class ReleaserTest extends Unit
     {
         $repositoryName = 'package';
         $branch = 'master';
-        $version = '1.0.0';
 
         $this->configurationLoaderMock->expects($this->atLeastOnce())
             ->method('load')
@@ -249,13 +264,16 @@ class ReleaserTest extends Unit
             ->method('checkout');
 
         $this->gitMock->expects($this->never())
+            ->method('describeClosestTag');
+
+        $this->gitMock->expects($this->never())
             ->method('tag');
 
         $this->gitMock->expects($this->never())
             ->method('pushWithTags');
 
         try {
-            $this->releaser->release($repositoryName, $branch, $version);
+            $this->releaser->release($repositoryName, $branch);
         } catch (Exception $e) {
             return;
         }
@@ -266,11 +284,95 @@ class ReleaserTest extends Unit
     /**
      * @return void
      */
+    public function testReleaseWithExistingVersion(): void
+    {
+        $repositoryName = 'package';
+        $repositoryUrl = 'git@github.com:user/package.git';
+        $branch = 'master';
+        $version = '1.0.0';
+        $pathToTempDirectory = '/path/to/tempDirectory/';
+        $pathToRepositoryTempDirectory = sprintf('%s%s%s', $pathToTempDirectory, $repositoryName, DIRECTORY_SEPARATOR);
+        $pathToCurrentWorkingDirectory = '/path/to/currentWorkingDirectory/';
+
+        $this->configurationLoaderMock->expects($this->atLeastOnce())
+            ->method('load')
+            ->willReturn($this->configurationMock);
+
+        $this->configurationMock->expects($this->atLeastOnce())
+            ->method('getRepositories')
+            ->willReturn($this->repositoriesMock);
+
+        $this->repositoriesMock->expects($this->atLeastOnce())
+            ->method('offsetExists')
+            ->with($repositoryName)
+            ->willReturn(true);
+
+        $this->repositoriesMock->expects($this->atLeastOnce())
+            ->method('offsetGet')
+            ->with($repositoryName)
+            ->willReturn($this->repositoryMock);
+
+        $this->filesystemMock->expects($this->atLeastOnce())
+            ->method('getCurrentWorkingDirectory')
+            ->willReturn($pathToCurrentWorkingDirectory);
+
+        $this->configurationMock->expects($this->atLeastOnce())
+            ->method('getPathToTempDirectory')
+            ->willReturn($pathToTempDirectory);
+
+        $this->filesystemMock->expects($this->atLeastOnce())
+            ->method('changeDirectory')
+            ->withConsecutive([$pathToRepositoryTempDirectory], [$pathToCurrentWorkingDirectory])
+            ->willReturn($this->filesystemMock);
+
+        $this->repositoryMock->expects($this->atLeastOnce())
+            ->method('getUrl')
+            ->willReturn($repositoryUrl);
+
+        $this->gitMock->expects($this->atLeastOnce())
+            ->method('clone')
+            ->with($repositoryUrl, '.')
+            ->willReturn($this->gitMock);
+
+        $this->gitMock->expects($this->atLeastOnce())
+            ->method('checkout')
+            ->with($branch)
+            ->willReturn($this->gitMock);
+
+        $this->repositoryMock->expects($this->atLeastOnce())
+            ->method('getVersion')
+            ->willReturn($version);
+
+        $this->gitMock->expects($this->atLeastOnce())
+            ->method('describeClosestTag')
+            ->with($version)
+            ->willReturn($version);
+
+        $this->gitMock->expects($this->never())
+            ->method('tag');
+
+        $this->gitMock->expects($this->never())
+            ->method('pushWithTags');
+
+        $this->filesystemMock->expects($this->atLeastOnce())
+            ->method('removeDirectory')
+            ->with($pathToRepositoryTempDirectory)
+            ->willReturn($this->filesystemMock);
+
+        $this->assertEquals(
+            $this->releaser,
+            $this->releaser->release($repositoryName, $branch)
+        );
+    }
+
+
+    /**
+     * @return void
+     */
     public function testReleaseAll(): void
     {
         $repositoryName = 'package';
         $branch = 'master';
-        $version = '1.0.0';
 
         $this->configurationLoaderMock->expects($this->atLeastOnce())
             ->method('load')
@@ -305,8 +407,7 @@ class ReleaserTest extends Unit
                 sprintf('%sdandelion', $this->pathToBinDirectory),
                 ReleaseCommand::NAME,
                 $repositoryName,
-                $branch,
-                $version
+                $branch
             ])->willReturn($this->processMock);
 
         $this->processMock->expects($this->atLeastOnce())
@@ -314,7 +415,7 @@ class ReleaserTest extends Unit
 
         $this->assertEquals(
             $this->releaser,
-            $this->releaser->releaseAll($branch, $version)
+            $this->releaser->releaseAll($branch)
         );
     }
 }

@@ -58,13 +58,12 @@ class ReleaseCommand extends Command
     {
         $repositoryName = $input->getArgument('repositoryName');
         $branch = $input->getArgument('branch');
-        $version = $input->getArgument('version');
 
-        if (!is_string($repositoryName) || !is_string($branch) || !is_string($version)) {
+        if (!is_string($repositoryName) || !is_string($branch)) {
             throw new InvalidArgumentException('Unsupported type for given argument');
         }
 
-        $this->releaser->release($repositoryName, $branch, $version);
+        $this->releaser->release($repositoryName, $branch);
 
         return 0;
     }

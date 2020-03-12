@@ -9,20 +9,18 @@ interface ReleaserInterface
     /**
      * @param string $repositoryName
      * @param string $branch
-     * @param string $version
+     *
      * @return \Dandelion\Operation\ReleaserInterface
      */
     public function release(
         string $repositoryName,
-        string $branch,
-        string $version
+        string $branch
     ): ReleaserInterface;
 
     /**
      * @param string $branch
-     * @param string $version
      *
      * @return \Dandelion\Operation\ReleaserInterface
      */
-    public function releaseAll(string $branch, string $version): ReleaserInterface;
+    public function releaseAll(string $branch): ReleaserInterface;
 }

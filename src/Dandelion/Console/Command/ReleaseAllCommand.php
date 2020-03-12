@@ -44,7 +44,6 @@ class ReleaseAllCommand extends Command
         $this->setDescription(static::DESCRIPTION);
 
         $this->addArgument('branch', InputArgument::REQUIRED, 'Branch');
-        $this->addArgument('version', InputArgument::REQUIRED, 'Version');
     }
 
     /**
@@ -56,13 +55,12 @@ class ReleaseAllCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $branch = $input->getArgument('branch');
-        $version = $input->getArgument('version');
 
-        if (!is_string($branch) || !is_string($version)) {
+        if (!is_string($branch)) {
             throw new InvalidArgumentException('Unsupported type for given argument');
         }
 
-        $this->releaser->releaseAll($branch, $version);
+        $this->releaser->releaseAll($branch);
 
         return 0;
     }

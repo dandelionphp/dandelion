@@ -41,7 +41,9 @@ class Git implements GitInterface
             $command[] = $directory;
         }
 
-        return $this->runCommandAsProcess($command);
+        $this->runCommandAsProcess($command);
+
+        return $this;
     }
 
     /**
@@ -57,7 +59,9 @@ class Git implements GitInterface
             $branch
         ];
 
-        return $this->runCommandAsProcess($command);
+        $this->runCommandAsProcess($command);
+
+        return $this;
     }
 
     /**
@@ -73,7 +77,9 @@ class Git implements GitInterface
             $tagName
         ];
 
-        return $this->runCommandAsProcess($command);
+        $this->runCommandAsProcess($command);
+
+        return $this;
     }
 
     /**
@@ -92,7 +98,9 @@ class Git implements GitInterface
             $url
         ];
 
-        return $this->runCommandAsProcess($command);
+        $this->runCommandAsProcess($command);
+
+        return $this;
     }
 
     /**
@@ -113,7 +121,9 @@ class Git implements GitInterface
             $command[] = $localBranch;
         }
 
-        return $this->runCommandAsProcess($command);
+        $this->runCommandAsProcess($command);
+
+        return $this;
     }
 
     /**
@@ -128,7 +138,9 @@ class Git implements GitInterface
     ): GitInterface {
         $command = $this->createPushCommand($remote, $refSpec);
 
-        return $this->runCommandAsProcess($command);
+        $this->runCommandAsProcess($command);
+
+        return $this;
     }
 
     /**
@@ -143,7 +155,9 @@ class Git implements GitInterface
 
         $command[] = '--force';
 
-        return $this->runCommandAsProcess($command);
+        $this->runCommandAsProcess($command);
+
+        return $this;
     }
 
     /**
@@ -157,7 +171,9 @@ class Git implements GitInterface
 
         $command[] = '--tags';
 
-        return $this->runCommandAsProcess($command);
+        $this->runCommandAsProcess($command);
+
+        return $this;
     }
 
     /**
@@ -184,9 +200,9 @@ class Git implements GitInterface
     /**
      * @param string[] $command
      *
-     * @return \Dandelion\VersionControl\GitInterface
+     * @return string
      */
-    protected function runCommandAsProcess(array $command): GitInterface
+    protected function runCommandAsProcess(array $command): string
     {
         $process = $this->processFactory->create($command);
 
@@ -196,6 +212,32 @@ class Git implements GitInterface
             throw new RuntimeException($process->getExitCodeText(), $process->getExitCode());
         }
 
-        return $this;
+        return $process->getOutput();
+    }
+
+    /**
+     * @param string|null $match
+     *
+     * @return string|null
+     */
+    public function describeClosestTag(?string $match = null): ?string
+    {
+        $command = [
+            'git',
+            'describe',
+            '--tags',
+            '--abbrev=0'
+        ];
+
+        if ($match !== null) {
+            $command[] = '--match';
+            $command[] = \sprintf('\'%s\'', $match);
+        }
+
+        try {
+            return $this->runCommandAsProcess($command);
+        } catch (RuntimeException $e) {
+            return null;
+        }
     }
 }

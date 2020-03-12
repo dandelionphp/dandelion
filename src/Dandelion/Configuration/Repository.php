@@ -17,6 +17,11 @@ class Repository
     protected $url;
 
     /**
+     * @var string
+     */
+    protected $version;
+
+    /**
      * @return string
      */
     public function getPath(): string
@@ -52,6 +57,26 @@ class Repository
     public function setUrl(string $url): Repository
     {
         $this->url = $url;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getVersion(): string
+    {
+        return $this->version;
+    }
+
+    /**
+     * @param string $version
+     *
+     * @return \Dandelion\Configuration\Repository
+     */
+    public function setVersion(string $version): Repository
+    {
+        $this->version = $version;
 
         return $this;
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Dandelion\Operation;
 
 use Dandelion\Configuration\ConfigurationLoaderInterface;
+use Dandelion\Configuration\Repository;
 use Dandelion\Exception\RepositoryNotFoundException;
 use Dandelion\Filesystem\FilesystemInterface;
 use Dandelion\Process\ProcessFactory;
@@ -63,15 +64,13 @@ class Releaser implements ReleaserInterface
     /**
      * @param string $repositoryName
      * @param string $branch
-     * @param string $version
      *
      * @return \Dandelion\Operation\ReleaserInterface
      * @throws \Exception
      */
     public function release(
         string $repositoryName,
-        string $branch,
-        string $version
+        string $branch
     ): ReleaserInterface {
         $configuration = $this->configurationLoader->load();
         $repositories = $configuration->getRepositories();
@@ -87,10 +86,7 @@ class Releaser implements ReleaserInterface
         $currentWorkingDirectory = $this->filesystem->getCurrentWorkingDirectory();
         $this->filesystem->changeDirectory($tempDirectory);
 
-        $this->git->clone($repository->getUrl(), '.')
-            ->checkout($branch)
-            ->tag($version)
-            ->pushWithTags('origin');
+        $this->doRelease($branch, $repository);
 
         $this->filesystem->changeDirectory($currentWorkingDirectory)
             ->removeDirectory($tempDirectory);
@@ -100,16 +96,38 @@ class Releaser implements ReleaserInterface
 
     /**
      * @param string $branch
-     * @param string $version
+     * @param \Dandelion\Configuration\Repository $repository
      *
      * @return \Dandelion\Operation\ReleaserInterface
      */
-    public function releaseAll(string $branch, string $version): ReleaserInterface
+    protected function doRelease(string $branch, Repository $repository): ReleaserInterface
+    {
+        $version = $repository->getVersion();
+
+        $this->git->clone($repository->getUrl(), '.')
+            ->checkout($branch);
+
+        if ($this->git->describeClosestTag($version) !== null) {
+            return $this;
+        }
+
+        $this->git->tag($version)
+            ->pushWithTags('origin');
+
+        return $this;
+    }
+
+    /**
+     * @param string $branch
+     *
+     * @return \Dandelion\Operation\ReleaserInterface
+     */
+    public function releaseAll(string $branch): ReleaserInterface
     {
         $configuration = $this->configurationLoader->load();
 
         foreach ($configuration->getRepositories() as $repositoryName => $repository) {
-            $this->releaseAsProcess($repositoryName, $branch, $version);
+            $this->releaseAsProcess($repositoryName, $branch);
         }
 
         return $this;
@@ -118,21 +136,18 @@ class Releaser implements ReleaserInterface
     /**
      * @param string $repositoryName
      * @param string $branch
-     * @param string $version
      *
      * @return \Dandelion\Operation\ReleaserInterface
      */
     protected function releaseAsProcess(
         string $repositoryName,
-        string $branch,
-        string $version
+        string $branch
     ): ReleaserInterface {
         $command = $command = [
             sprintf('%sdandelion', $this->binDir),
             'release',
             $repositoryName,
-            $branch,
-            $version
+            $branch
         ];
 
         $process = $this->processFactory->create($command);

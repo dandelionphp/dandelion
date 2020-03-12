@@ -44,4 +44,15 @@ class RepositoryTest extends Unit
         $this->assertEquals($this->repository, $this->repository->setUrl($url));
         $this->assertEquals($url, $this->repository->getUrl());
     }
+
+    /**
+     * @return void
+     */
+    public function testSetAndGetVersion(): void
+    {
+        $version = '1.0.0';
+
+        $this->assertEquals($this->repository, $this->repository->setVersion($version));
+        $this->assertEquals($version, $this->repository->getVersion());
+    }
 }

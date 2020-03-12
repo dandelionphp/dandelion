@@ -63,6 +63,10 @@ class GitTest extends Unit
             ->method('isSuccessful')
             ->willReturn(true);
 
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('getOutput')
+            ->willReturn('Output');
+
         $this->assertEquals($this->git, $this->git->clone($repository));
     }
 
@@ -86,6 +90,10 @@ class GitTest extends Unit
             ->method('isSuccessful')
             ->willReturn(true);
 
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('getOutput')
+            ->willReturn('Output');
+
         $this->assertEquals($this->git, $this->git->clone($repository, $targetDirectory));
     }
 
@@ -108,6 +116,9 @@ class GitTest extends Unit
             ->method('isSuccessful')
             ->willReturn(false);
 
+        $this->processMock->expects($this->never())
+            ->method('getOutput');
+
         try {
             $this->git->clone($repository);
         } catch (Exception $e) {
@@ -115,7 +126,6 @@ class GitTest extends Unit
         }
 
         $this->fail();
-
     }
 
     /**
@@ -136,6 +146,10 @@ class GitTest extends Unit
         $this->processMock->expects($this->atLeastOnce())
             ->method('isSuccessful')
             ->willReturn(true);
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('getOutput')
+            ->willReturn('Output');
 
         $this->assertEquals($this->git, $this->git->checkout($branch));
     }
@@ -158,6 +172,9 @@ class GitTest extends Unit
         $this->processMock->expects($this->atLeastOnce())
             ->method('isSuccessful')
             ->willReturn(false);
+
+        $this->processMock->expects($this->never())
+            ->method('getOutput');
 
         try {
             $this->git->checkout($branch);
@@ -187,6 +204,10 @@ class GitTest extends Unit
             ->method('isSuccessful')
             ->willReturn(true);
 
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('getOutput')
+            ->willReturn('Output');
+
         $this->assertEquals($this->git, $this->git->tag($tagName));
     }
 
@@ -208,6 +229,9 @@ class GitTest extends Unit
         $this->processMock->expects($this->atLeastOnce())
             ->method('isSuccessful')
             ->willReturn(false);
+
+        $this->processMock->expects($this->never())
+            ->method('getOutput');
 
         try {
             $this->git->tag($tagName);
@@ -238,6 +262,10 @@ class GitTest extends Unit
             ->method('isSuccessful')
             ->willReturn(true);
 
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('getOutput')
+            ->willReturn('Output');
+
         $this->assertEquals($this->git, $this->git->addRemote($name, $url));
     }
 
@@ -260,6 +288,9 @@ class GitTest extends Unit
         $this->processMock->expects($this->atLeastOnce())
             ->method('isSuccessful')
             ->willReturn(false);
+
+        $this->processMock->expects($this->never())
+            ->method('getOutput');
 
         try {
             $this->git->addRemote($name, $url);
@@ -290,6 +321,10 @@ class GitTest extends Unit
             ->method('isSuccessful')
             ->willReturn(true);
 
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('getOutput')
+            ->willReturn('Output');
+
         $this->assertEquals($this->git, $this->git->pull($remote, $branch));
     }
 
@@ -312,6 +347,9 @@ class GitTest extends Unit
         $this->processMock->expects($this->atLeastOnce())
             ->method('isSuccessful')
             ->willReturn(false);
+
+        $this->processMock->expects($this->never())
+            ->method('getOutput');
 
         try {
             $this->git->pull($remote, $branch);
@@ -342,6 +380,10 @@ class GitTest extends Unit
             ->method('isSuccessful')
             ->willReturn(true);
 
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('getOutput')
+            ->willReturn('Output');
+
         $this->assertEquals($this->git, $this->git->push($remote, $refSpec));
     }
 
@@ -364,6 +406,9 @@ class GitTest extends Unit
         $this->processMock->expects($this->atLeastOnce())
             ->method('isSuccessful')
             ->willReturn(false);
+
+        $this->processMock->expects($this->never())
+            ->method('getOutput');
 
         try {
             $this->git->push($remote, $refSpec);
@@ -394,6 +439,10 @@ class GitTest extends Unit
             ->method('isSuccessful')
             ->willReturn(true);
 
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('getOutput')
+            ->willReturn('Output');
+
         $this->assertEquals($this->git, $this->git->pushForcefully($remote, $refSpec));
     }
 
@@ -416,6 +465,9 @@ class GitTest extends Unit
         $this->processMock->expects($this->atLeastOnce())
             ->method('isSuccessful')
             ->willReturn(false);
+
+        $this->processMock->expects($this->never())
+            ->method('getOutput');
 
         try {
             $this->git->pushForcefully($remote, $refSpec);
@@ -445,6 +497,10 @@ class GitTest extends Unit
             ->method('isSuccessful')
             ->willReturn(true);
 
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('getOutput')
+            ->willReturn('Output');
+
         $this->assertEquals($this->git, $this->git->pushWithTags($remote));
     }
 
@@ -467,6 +523,9 @@ class GitTest extends Unit
             ->method('isSuccessful')
             ->willReturn(false);
 
+        $this->processMock->expects($this->never())
+            ->method('getOutput');
+
         try {
             $this->git->pushWithTags($remote);
         } catch (Exception $e) {
@@ -474,5 +533,70 @@ class GitTest extends Unit
         }
 
         $this->fail();
+    }
+
+    /**
+     * @return void
+     */
+    public function testDescribeClosestTag(): void
+    {
+        $match = '1.0.0';
+
+        $this->processFactoryMock->expects($this->atLeastOnce())
+            ->method('create')
+            ->with([
+                'git',
+                'describe',
+                '--tags',
+                '--abbrev=0',
+                '--match',
+                \sprintf('\'%s\'', $match)
+            ])
+            ->willReturn($this->processMock);
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('run');
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('isSuccessful')
+            ->willReturn(true);
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('getOutput')
+            ->willReturn($match);
+
+        $this->assertEquals($match, $this->git->describeClosestTag($match));
+    }
+
+    /**
+     * @return void
+     */
+    public function testDescribeClosestTagWithError(): void
+    {
+        $match = '1.0.0';
+
+        $this->processFactoryMock->expects($this->atLeastOnce())
+            ->method('create')
+            ->with([
+                'git',
+                'describe',
+                '--tags',
+                '--abbrev=0',
+                '--match',
+                \sprintf('\'%s\'', $match)
+            ])
+            ->willReturn($this->processMock);
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('run');
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('isSuccessful')
+            ->willReturn(false);
+
+        $this->processMock->expects($this->never())
+            ->method('getOutput');
+
+        $this->assertEquals(null, $this->git->describeClosestTag($match));
     }
 }
