@@ -39,15 +39,17 @@ Download the latest release from the [Github](https://github.com/dandelionphp/da
     "repositories": {
         "dandelion-example-1": {
             "url": "https://<GITHUB_USERNAME>:<GITHUB_TOKEN>@github.com:dandelionphp/dandelion-example-1.git",
-            "path": "example-1",
+            "path": "example-1/",
             "version": "1.0.0"
         },
         "dandelion-example-2": {
             "url": "https://<GITHUB_USERNAME>:<GITHUB_TOKEN>@github.com:dandelionphp/dandelion-example-2.git",
-            "path": "example-2",
+            "path": "example-2/",
             "version": "1.1.0"
         }
     },
     "pathToTempDirectory": "tmp/"
 }
 ```
+
+_Note: It is important to use trailing slashes on path references_
