@@ -240,4 +240,27 @@ class Git implements GitInterface
             return null;
         }
     }
+
+    /**
+     * @param string $remote
+     *
+     * @return bool
+     */
+    public function existsRemote(string $remote): bool
+    {
+        $command = [
+            'git',
+            'remote',
+            'show',
+            $remote
+        ];
+
+        try {
+            $this->runCommandAsProcess($command);
+        } catch (RuntimeException $e) {
+            return false;
+        }
+
+        return true;
+    }
 }

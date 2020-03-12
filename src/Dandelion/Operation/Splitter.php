@@ -80,9 +80,13 @@ class Splitter implements SplitterInterface
 
         $repository = $repositories->offsetGet($repositoryName);
 
-        $this->git->addRemote($repositoryName, $repository->getUrl());
+        if (!$this->git->existsRemote($repositoryName)) {
+            $this->git->addRemote($repositoryName, $repository->getUrl());
+        }
+
         $sha1 = $this->splitshLite->getSha1($repository->getPath());
         $refSpec = sprintf('%s:refs/heads/%s', $sha1, $branch);
+
         $this->git->pushForcefully($repositoryName, $refSpec);
 
         return $this;

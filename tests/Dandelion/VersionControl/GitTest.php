@@ -599,4 +599,65 @@ class GitTest extends Unit
 
         $this->assertEquals(null, $this->git->describeClosestTag($match));
     }
+
+    /**
+     * @return void
+     */
+    public function testExistsRemote(): void
+    {
+        $remote = 'xxx';
+
+        $this->processFactoryMock->expects($this->atLeastOnce())
+            ->method('create')
+            ->with([
+                'git',
+                'remote',
+                'show',
+                $remote
+            ])
+            ->willReturn($this->processMock);
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('run');
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('isSuccessful')
+            ->willReturn(true);
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('getOutput')
+            ->willReturn('...');
+
+        $this->assertTrue($this->git->existsRemote($remote));
+    }
+
+    /**
+     * @return void
+     */
+    public function testExistsRemoteWithError(): void
+    {
+        $remote = 'xxx';
+
+        $this->processFactoryMock->expects($this->atLeastOnce())
+            ->method('create')
+            ->with([
+                'git',
+                'remote',
+                'show',
+                $remote
+            ])
+            ->willReturn($this->processMock);
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('run');
+
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('isSuccessful')
+            ->willReturn(false);
+
+        $this->processMock->expects($this->never())
+            ->method('getOutput');
+
+        $this->assertFalse($this->git->existsRemote($remote));
+    }
 }

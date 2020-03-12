@@ -73,4 +73,11 @@ interface GitInterface
      * @return string|null
      */
     public function describeClosestTag(?string $match = null): ?string;
+
+    /**
+     * @param string $remote
+     *
+     * @return bool
+     */
+    public function existsRemote(string $remote): bool;
 }

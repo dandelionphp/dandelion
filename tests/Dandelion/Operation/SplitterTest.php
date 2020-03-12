@@ -14,6 +14,7 @@ use Dandelion\VersionControl\SplitshLiteInterface;
 use Exception;
 use Iterator;
 use Symfony\Component\Process\Process;
+
 use function sha1;
 use function sprintf;
 
@@ -168,6 +169,11 @@ class SplitterTest extends Unit
             ->willReturn($repositoryPath);
 
         $this->gitMock->expects($this->atLeastOnce())
+            ->method('existsRemote')
+            ->with($repositoryName)
+            ->willReturn(false);
+
+        $this->gitMock->expects($this->atLeastOnce())
             ->method('addRemote')
             ->with($repositoryName, $repositoryUrl);
 
@@ -218,6 +224,9 @@ class SplitterTest extends Unit
 
         $this->repositoryMock->expects($this->never())
             ->method('getPath');
+
+        $this->gitMock->expects($this->never())
+            ->method('existsRemote');
 
         $this->gitMock->expects($this->never())
             ->method('addRemote');

@@ -32,7 +32,7 @@ codeception:
 	./vendor/bin/codecept run --coverage --coverage-xml --coverage-html
 
 phpmd:
-	./vendor/bin/phpmd ./src xml cleancode,codesize,controversial,design --exclude DandelionServiceProvider
+	./vendor/bin/phpmd ./src xml cleancode,codesize,controversial,design --exclude DandelionServiceProvider,Git
 
 phpcpd:
 	./vendor/bin/phpcpd ./src
