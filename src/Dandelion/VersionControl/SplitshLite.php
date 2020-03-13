@@ -64,7 +64,7 @@ class SplitshLite implements SplitshLiteInterface
         $process = $this->processFactory->create($command);
 
         $process->run();
-        var_dump($process->getErrorOutput());
+
         if (!$process->isSuccessful()) {
             throw new RuntimeException($process->getExitCodeText(), $process->getExitCode());
         }
