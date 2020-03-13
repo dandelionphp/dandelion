@@ -1,0 +1,13 @@
+{
+  "banner": [
+    "This file is part of the dandelion project.",
+    "",
+    "This source file is subject to the MIT license that is bundled",
+    "with this source code in the file LICENSE."
+  ],
+  "files": [
+    "resources/dandelion.schema.json",
+    "bin/splitsh-lite-darwin",
+    "bin/splitsh-lite-linux"
+  ]
+}

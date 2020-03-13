@@ -76,21 +76,21 @@ class ReleaseCommandTest extends Unit
     public function testRun(): void
     {
         $branch = 'master';
-        $version = '1.0.0';
         $repositoryName = 'package';
 
         $this->inputMock->expects($this->atLeastOnce())
             ->method('getArgument')
-            ->withConsecutive(['repositoryName'], ['branch'], ['version'])
+            ->withConsecutive(['repositoryName'], ['branch'])
             ->willReturnOnConsecutiveCalls(
-                $repositoryName, $branch, $version
+                $repositoryName,
+                $branch
             );
 
         $this->releaserMock->expects($this->atLeastOnce())
             ->method('release')
-            ->with($repositoryName, $branch, $version);
+            ->with($repositoryName, $branch);
 
-        $this->assertEquals(null, $this->releaseCommand->run($this->inputMock, $this->outputMock));
+        $this->assertEquals(0, $this->releaseCommand->run($this->inputMock, $this->outputMock));
     }
 
     /**
@@ -99,14 +99,14 @@ class ReleaseCommandTest extends Unit
     public function testRunWithInvalidArgument(): void
     {
         $branch = 1;
-        $version = '1.0.0';
         $repositoryName = 'package';
 
         $this->inputMock->expects($this->atLeastOnce())
             ->method('getArgument')
-            ->withConsecutive(['repositoryName'], ['branch'], ['version'])
+            ->withConsecutive(['repositoryName'], ['branch'])
             ->willReturnOnConsecutiveCalls(
-                $repositoryName, $branch, $version
+                $repositoryName,
+                $branch
             );
 
         $this->releaserMock->expects($this->never())

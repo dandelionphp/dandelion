@@ -15,25 +15,26 @@
     "ext-json": "*",
     "ext-curl": "*",
     "ext-phar": "*",
-    "monolog/monolog": "~1.24.0",
-    "pimple/pimple": "~3.2.3",
-    "phpdocumentor/reflection-docblock": "~4.3.2",
-    "symfony/console": "~4.3.3",
-    "symfony/finder": "~4.3.3",
-    "symfony/process": "~4.3.3",
-    "symfony/property-access": "~4.3.3",
-    "symfony/property-info": "~4.3.3",
-    "symfony/serializer": "~4.3.3"
+    "monolog/monolog": "~2.0.2",
+    "pimple/pimple": "~3.3.0",
+    "phpdocumentor/reflection-docblock": "~5.1.0",
+    "symfony/console": "~5.0.4",
+    "symfony/finder": "~5.0.4",
+    "symfony/process": "~5.0.4",
+    "symfony/property-access": "~5.0.4",
+    "symfony/property-info": "~5.0.4",
+    "symfony/serializer": "~5.0.4",
+    "swaggest/json-schema": "~0.12.28"
   },
   "require-dev": {
-    "codeception/codeception": "^4.0",
+    "codeception/codeception": "^4.1",
     "mikey179/vfsstream": "^1.6",
-    "php-coveralls/php-coveralls": "^2.2.",
+    "php-coveralls/php-coveralls": "^2.2",
     "phpmd/phpmd": "^2.8",
-    "phpro/grumphp-shim": "^0.17",
+    "phpro/grumphp-shim": "^0.18",
     "phpstan/phpstan": "^0.12",
     "roave/security-advisories": "dev-master as 1.0.0",
-    "sebastian/phpcpd": "^4.1",
+    "sebastian/phpcpd": "^5.0",
     "sllh/composer-versions-check": "^2.0",
     "squizlabs/php_codesniffer": "^3.5"
   },
@@ -47,5 +48,13 @@
       "Dandelion\\": "tests/Dandelion"
     }
   },
-  "bin": "bin/dandelion"
+  "bin": "bin/dandelion",
+  "config": {
+    "sort-packages": true,
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "github-protocols": [
+      "https"
+    ]
+  }
 }

@@ -66,4 +66,18 @@ interface GitInterface
      * @return \Dandelion\VersionControl\GitInterface
      */
     public function pushWithTags(string $remote): GitInterface;
+
+    /**
+     * @param string|null $match
+     *
+     * @return string|null
+     */
+    public function describeClosestTag(?string $match = null): ?string;
+
+    /**
+     * @param string $remote
+     *
+     * @return bool
+     */
+    public function existsRemote(string $remote): bool;
 }

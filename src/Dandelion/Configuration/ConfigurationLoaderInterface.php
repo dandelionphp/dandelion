@@ -10,4 +10,9 @@ interface ConfigurationLoaderInterface
      * @return \Dandelion\Configuration\Configuration
      */
     public function load(): Configuration;
+
+    /**
+     * @return string
+     */
+    public function loadRaw(): string;
 }

@@ -57,7 +57,8 @@ class SplitshLite implements SplitshLiteInterface
     {
         $command = [
             $this->getPathToSplitshLiteBin(),
-            sprintf('--prefix=%s', $pathToPackage)
+            sprintf('--prefix=%s', $pathToPackage),
+            '--quiet'
         ];
 
         $process = $this->processFactory->create($command);
@@ -68,7 +69,7 @@ class SplitshLite implements SplitshLiteInterface
             throw new RuntimeException($process->getExitCodeText(), $process->getExitCode());
         }
 
-        return $process->getOutput();
+        return trim($process->getOutput());
     }
 
     /**

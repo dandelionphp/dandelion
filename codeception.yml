@@ -2,10 +2,11 @@ suites:
     unit:
         path: .
 
+bootstrap: _bootstrap.php
+
 settings:
     shuffle: true
     lint: true
-    bootstrap: _bootstrap.php
 
 coverage:
     enabled: true

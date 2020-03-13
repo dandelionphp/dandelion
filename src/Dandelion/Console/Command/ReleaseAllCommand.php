@@ -16,7 +16,7 @@ use function is_string;
 class ReleaseAllCommand extends Command
 {
     public const NAME = 'release:all';
-    public const DESCRIPTION = 'Release all packages.';
+    public const DESCRIPTION = 'Releases all packages.';
 
     /**
      * @var \Dandelion\Operation\ReleaserInterface
@@ -44,26 +44,24 @@ class ReleaseAllCommand extends Command
         $this->setDescription(static::DESCRIPTION);
 
         $this->addArgument('branch', InputArgument::REQUIRED, 'Branch');
-        $this->addArgument('version', InputArgument::REQUIRED, 'Version');
     }
 
     /**
      * @param \Symfony\Component\Console\Input\InputInterface $input
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      *
-     * @return int|null
+     * @return int
      */
-    protected function execute(InputInterface $input, OutputInterface $output): ?int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $branch = $input->getArgument('branch');
-        $version = $input->getArgument('version');
 
-        if (!is_string($branch) || !is_string($version)) {
+        if (!is_string($branch)) {
             throw new InvalidArgumentException('Unsupported type for given argument');
         }
 
-        $this->releaser->releaseAll($branch, $version);
+        $this->releaser->releaseAll($branch);
 
-        return null;
+        return 0;
     }
 }

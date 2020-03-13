@@ -89,7 +89,7 @@ class SplitCommandTest extends Unit
             ->method('split')
             ->with($repositoryName, $branch);
 
-        $this->assertEquals(null, $this->splitCommand->run($this->inputMock, $this->outputMock));
+        $this->assertEquals(0, $this->splitCommand->run($this->inputMock, $this->outputMock));
     }
 
     /**

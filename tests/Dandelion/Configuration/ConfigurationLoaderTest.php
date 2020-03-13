@@ -104,36 +104,6 @@ class ConfigurationLoaderTest extends Unit
      *
      * @throws \Exception
      */
-    public function testLoadWithNonExistingConfigurationFile(): void
-    {
-        $this->configurationFinderMock->expects($this->atLeastOnce())
-            ->method('find')
-            ->willReturn($this->splFileInfoMock);
-
-        $this->splFileInfoMock->expects($this->atLeastOnce())
-            ->method('getRealPath')
-            ->willReturn(false);
-
-        $this->filesystemMock->expects($this->never())
-            ->method('readFile');
-
-        $this->symfonySerializerMock->expects($this->never())
-            ->method('deserialize');
-
-        try {
-            $this->configurationLoader->load();
-        } catch (Exception $e) {
-            return;
-        }
-
-        $this->fail();
-    }
-
-    /**
-     * @return void
-     *
-     * @throws \Exception
-     */
     public function testLoadWithUnsupportedConfigurationFile(): void
     {
         $configurationFileContent = '[...]';
@@ -159,6 +129,59 @@ class ConfigurationLoaderTest extends Unit
 
         try {
             $this->configurationLoader->load();
+        } catch (Exception $e) {
+            return;
+        }
+
+        $this->fail();
+    }
+
+    /**
+     * @return void
+     *
+     * @throws \Exception
+     */
+    public function testLoadRaw(): void
+    {
+        $configurationFileContent = '{...}';
+        $pathToConfigurationFile = '/path/to/dandelion.json';
+
+        $this->configurationFinderMock->expects($this->atLeastOnce())
+            ->method('find')
+            ->willReturn($this->splFileInfoMock);
+
+        $this->splFileInfoMock->expects($this->atLeastOnce())
+            ->method('getRealPath')
+            ->willReturn($pathToConfigurationFile);
+
+        $this->filesystemMock->expects($this->atLeastOnce())
+            ->method('readFile')
+            ->with($pathToConfigurationFile)
+            ->willReturn($configurationFileContent);
+
+        $this->assertEquals($configurationFileContent, $this->configurationLoader->loadRaw());
+    }
+
+    /**
+     * @return void
+     *
+     * @throws \Exception
+     */
+    public function testLoadRawWithNonExistingConfigurationFile(): void
+    {
+        $this->configurationFinderMock->expects($this->atLeastOnce())
+            ->method('find')
+            ->willReturn($this->splFileInfoMock);
+
+        $this->splFileInfoMock->expects($this->atLeastOnce())
+            ->method('getRealPath')
+            ->willReturn(false);
+
+        $this->filesystemMock->expects($this->never())
+            ->method('readFile');
+
+        try {
+            $this->configurationLoader->loadRaw();
         } catch (Exception $e) {
             return;
         }

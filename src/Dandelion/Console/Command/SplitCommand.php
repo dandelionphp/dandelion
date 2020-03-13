@@ -16,7 +16,7 @@ use function is_string;
 class SplitCommand extends Command
 {
     public const NAME = 'split';
-    public const DESCRIPTION = 'Split package from mono to split.';
+    public const DESCRIPTION = 'Splits package from mono to split.';
 
     /**
      * @var \Dandelion\Operation\SplitterInterface
@@ -51,9 +51,9 @@ class SplitCommand extends Command
      * @param \Symfony\Component\Console\Input\InputInterface $input
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      *
-     * @return int|null
+     * @return int
      */
-    protected function execute(InputInterface $input, OutputInterface $output): ?int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $repositoryName = $input->getArgument('repositoryName');
         $branch = $input->getArgument('branch');
@@ -64,6 +64,6 @@ class SplitCommand extends Command
 
         $this->splitter->split($repositoryName, $branch);
 
-        return null;
+        return 0;
     }
 }

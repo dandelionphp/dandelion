@@ -16,7 +16,7 @@ use function is_string;
 class ReleaseCommand extends Command
 {
     public const NAME = 'release';
-    public const DESCRIPTION = 'Release package.';
+    public const DESCRIPTION = 'Releases package.';
 
     /**
      * @var \Dandelion\Operation\ReleaserInterface
@@ -52,20 +52,19 @@ class ReleaseCommand extends Command
      * @param \Symfony\Component\Console\Input\InputInterface $input
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      *
-     * @return int|null
+     * @return int
      */
-    protected function execute(InputInterface $input, OutputInterface $output): ?int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $repositoryName = $input->getArgument('repositoryName');
         $branch = $input->getArgument('branch');
-        $version = $input->getArgument('version');
 
-        if (!is_string($repositoryName) || !is_string($branch) || !is_string($version)) {
+        if (!is_string($repositoryName) || !is_string($branch)) {
             throw new InvalidArgumentException('Unsupported type for given argument');
         }
 
-        $this->releaser->release($repositoryName, $branch, $version);
+        $this->releaser->release($repositoryName, $branch);
 
-        return null;
+        return 0;
     }
 }

@@ -51,14 +51,7 @@ class ConfigurationLoader implements ConfigurationLoaderInterface
      */
     public function load(): Configuration
     {
-        $configurationFile = $this->configurationFinder->find();
-        $realPathToConfigurationFile = $configurationFile->getRealPath();
-
-        if ($realPathToConfigurationFile === false) {
-            throw new IOException('Configuration file does not exists.');
-        }
-
-        $configurationFileContent = $this->filesystem->readFile($realPathToConfigurationFile);
+        $configurationFileContent = $this->loadRaw();
 
         $configuration = $this->serializer->deserialize(
             $configurationFileContent,
@@ -71,5 +64,22 @@ class ConfigurationLoader implements ConfigurationLoaderInterface
         }
 
         return $configuration;
+    }
+
+    /**
+     * @return string
+     *
+     * @throws \Dandelion\Exception\IOException
+     */
+    public function loadRaw(): string
+    {
+        $configurationFile = $this->configurationFinder->find();
+        $realPathToConfigurationFile = $configurationFile->getRealPath();
+
+        if ($realPathToConfigurationFile === false) {
+            throw new IOException('Configuration file does not exists.');
+        }
+
+        return $this->filesystem->readFile($realPathToConfigurationFile);
     }
 }
