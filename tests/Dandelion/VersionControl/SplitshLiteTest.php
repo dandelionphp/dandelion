@@ -97,7 +97,8 @@ class SplitshLiteTest extends Unit
             ->method('create')
             ->with([
                 $pathToSplitshLite,
-                sprintf('--prefix=%s', $pathToPackage)
+                sprintf('--prefix=%s', $pathToPackage),
+                '--quiet'
             ])->willReturn($this->processMock);
 
         $this->processMock->expects($this->atLeastOnce())
@@ -221,7 +222,8 @@ class SplitshLiteTest extends Unit
             ->method('create')
             ->with([
                 $pathToSplitshLite,
-                sprintf('--prefix=%s', $pathToPackage)
+                sprintf('--prefix=%s', $pathToPackage),
+                '--quiet'
             ])->willReturn($this->processMock);
 
         $this->processMock->expects($this->atLeastOnce())
