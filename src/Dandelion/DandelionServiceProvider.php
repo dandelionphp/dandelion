@@ -19,9 +19,12 @@ use Dandelion\Operation\Splitter;
 use Dandelion\Process\ProcessFactory;
 use Dandelion\VersionControl\Git;
 use Dandelion\VersionControl\SplitshLite;
+use Monolog\Logger;
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 use Swaggest\JsonSchema\Schema;
+use Symfony\Bridge\Monolog\Handler\ConsoleHandler;
+use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
@@ -41,6 +44,7 @@ class DandelionServiceProvider implements ServiceProviderInterface
     public function register(Container $container): void
     {
         $container = $this->registerDirectoryPaths($container);
+        $container = $this->registerLogger($container);
         $container = $this->registerFilesystem($container);
         $container = $this->registerFinder($container);
         $container = $this->registerSerializer($container);
@@ -53,7 +57,7 @@ class DandelionServiceProvider implements ServiceProviderInterface
         $container = $this->registerSplitter($container);
         $container = $this->registerReleaser($container);
         $container = $this->registerConfigurationValidator($container);
-
+        $container = $this->registerConsoleOutput($container);
         $this->registerCommands($container);
     }
 
@@ -81,6 +85,37 @@ class DandelionServiceProvider implements ServiceProviderInterface
 
         $container->offsetSet('bin_dir', static function () use ($rootDir) {
             return sprintf('%sbin%s', $rootDir, DIRECTORY_SEPARATOR);
+        });
+
+        return $container;
+    }
+
+    /**
+     * @param \Pimple\Container $container
+     *
+     * @return \Pimple\Container
+     */
+    protected function registerLogger(Container $container): Container
+    {
+        $container->offsetSet('logger', static function (Container $container) {
+            return new Logger('main', [
+                new ConsoleHandler($container->offsetGet('console_output'), true, [])
+            ]);
+        });
+
+        return $container;
+    }
+
+
+    /**
+     * @param \Pimple\Container $container
+     *
+     * @return \Pimple\Container
+     */
+    protected function registerConsoleOutput(Container $container): Container
+    {
+        $container->offsetSet('console_output', static function () {
+            return new ConsoleOutput();
         });
 
         return $container;
@@ -352,6 +387,11 @@ class DandelionServiceProvider implements ServiceProviderInterface
         return new ReleaseAllCommand($container->offsetGet('releaser'));
     }
 
+    /**
+     * @param \Pimple\Container $container
+     *
+     * @return \Dandelion\Console\Command\ValidateCommand
+     */
     protected function createValidateCommand(Container $container): ValidateCommand
     {
         return new ValidateCommand($container->offsetGet('configuration_validator'));

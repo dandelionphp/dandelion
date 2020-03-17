@@ -7,6 +7,8 @@ namespace Dandelion\Console;
 use Pimple\Container;
 use Symfony\Component\Console\Application as SymfonyApplication;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 use function count;
 use function is_array;
@@ -57,5 +59,22 @@ class Application extends SymfonyApplication
         }
 
         return $defaultCommands;
+    }
+
+    /**
+     * @param \Symfony\Component\Console\Input\InputInterface|null $input
+     * @param \Symfony\Component\Console\Output\OutputInterface|null $output
+     *
+     * @return int
+     *
+     * @throws \Exception
+     */
+    public function run(InputInterface $input = null, OutputInterface $output = null): int
+    {
+        if ($this->container->offsetExists('console_output')) {
+            $output = $this->container->offsetGet('console_output');
+        }
+
+        return parent::run($input, $output);
     }
 }
