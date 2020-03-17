@@ -394,6 +394,9 @@ class DandelionServiceProvider implements ServiceProviderInterface
      */
     protected function createValidateCommand(Container $container): ValidateCommand
     {
-        return new ValidateCommand($container->offsetGet('configuration_validator'));
+        return new ValidateCommand(
+            $container->offsetGet('configuration_validator'),
+            $container->offsetGet('logger')
+        );
     }
 }
