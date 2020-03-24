@@ -17,6 +17,7 @@ use Dandelion\Filesystem\Filesystem;
 use Dandelion\Operation\Releaser;
 use Dandelion\Operation\Splitter;
 use Dandelion\Process\ProcessFactory;
+use Dandelion\Process\ProcessPoolFactory;
 use Dandelion\VersionControl\Git;
 use Dandelion\VersionControl\SplitshLite;
 use Monolog\Logger;
@@ -51,6 +52,7 @@ class DandelionServiceProvider implements ServiceProviderInterface
         $container = $this->registerConfigurationLoader($container);
         $container = $this->registerConfigurationFinder($container);
         $container = $this->registerProcessFactory($container);
+        $container = $this->registerProcessPoolFactory($container);
         $container = $this->registerOperatingSystem($container);
         $container = $this->registerGit($container);
         $container = $this->registerSplitshLite($container);
@@ -173,7 +175,7 @@ class DandelionServiceProvider implements ServiceProviderInterface
         $container->offsetSet('splitter', static function (Container $container) {
             return new Splitter(
                 $container->offsetGet('configuration_loader'),
-                $container->offsetGet('process_factory'),
+                $container->offsetGet('process_pool_factory'),
                 $container->offsetGet('git'),
                 $container->offsetGet('splitsh_lite'),
                 $container->offsetGet('bin_dir')
@@ -206,6 +208,23 @@ class DandelionServiceProvider implements ServiceProviderInterface
     {
         $container->offsetSet('process_factory', static function () {
             return new ProcessFactory();
+        });
+
+        return $container;
+    }
+
+    /**
+     * @param \Pimple\Container $container
+     *
+     * @return \Pimple\Container
+     */
+    protected function registerProcessPoolFactory(Container $container): Container
+    {
+        $container->offsetSet('process_pool_factory', static function (Container $container) {
+            return new ProcessPoolFactory(
+                $container->offsetGet('process_factory'),
+                $container->offsetGet('logger')
+            );
         });
 
         return $container;
@@ -358,7 +377,7 @@ class DandelionServiceProvider implements ServiceProviderInterface
             return new Releaser(
                 $container->offsetGet('configuration_loader'),
                 $container->offsetGet('filesystem'),
-                $container->offsetGet('process_factory'),
+                $container->offsetGet('process_pool_factory'),
                 $container->offsetGet('git'),
                 $container->offsetGet('bin_dir')
             );

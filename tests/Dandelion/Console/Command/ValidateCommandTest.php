@@ -5,6 +5,7 @@ namespace Dandelion\Console\Command;
 use Codeception\Test\Unit;
 use Dandelion\Configuration\ConfigurationValidatorInterface;
 use Dandelion\Exception\ConfigurationNotValidException;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -24,6 +25,11 @@ class ValidateCommandTest extends Unit
      * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Configuration\ConfigurationValidatorInterface
      */
     protected $configurationValidatorMock;
+
+    /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Psr\Log\LoggerInterface
+     */
+    protected $loggerMock;
 
     /**
      * @var \Dandelion\Console\Command\ValidateCommand
@@ -49,7 +55,14 @@ class ValidateCommandTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->validateCommand = new ValidateCommand($this->configurationValidatorMock);
+        $this->loggerMock = $this->getMockBuilder(LoggerInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->validateCommand = new ValidateCommand(
+            $this->configurationValidatorMock,
+            $this->loggerMock
+        );
     }
 
     /**
@@ -78,9 +91,9 @@ class ValidateCommandTest extends Unit
         $this->configurationValidatorMock->expects($this->atLeastOnce())
             ->method('validate');
 
-        $this->outputMock->expects($this->atLeastOnce())
-            ->method('writeln')
-            ->with(sprintf('<info>%s</info>', 'Configuration is valid.'));
+        $this->loggerMock->expects($this->atLeastOnce())
+            ->method('notice')
+            ->with('Configuration is valid.');
 
         $this->assertEquals(0, $this->validateCommand->run($this->inputMock, $this->outputMock));
     }
@@ -96,9 +109,9 @@ class ValidateCommandTest extends Unit
             ->method('validate')
             ->willThrowException(new ConfigurationNotValidException('...'));
 
-        $this->outputMock->expects($this->atLeastOnce())
-            ->method('writeln')
-            ->with(sprintf('<error>%s</error>', '...'));
+        $this->loggerMock->expects($this->atLeastOnce())
+            ->method('error')
+            ->with('...');
 
         $this->assertEquals(1, $this->validateCommand->run($this->inputMock, $this->outputMock));
     }

@@ -10,6 +10,8 @@ use Dandelion\Configuration\Repository;
 use Dandelion\Console\Command\ReleaseCommand;
 use Dandelion\Filesystem\FilesystemInterface;
 use Dandelion\Process\ProcessFactory;
+use Dandelion\Process\ProcessPoolFactoryInterface;
+use Dandelion\Process\ProcessPoolInterface;
 use Dandelion\VersionControl\GitInterface;
 use Exception;
 use Iterator;
@@ -53,14 +55,14 @@ class ReleaserTest extends Unit
     protected $filesystemMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Process\ProcessFactory
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Process\ProcessPoolFactoryInterface
      */
-    protected $processFactoryMock;
+    protected $processPoolFactoryMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Symfony\Component\Process\Process
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Process\ProcessPoolInterface
      */
-    protected $processMock;
+    protected $processPoolMock;
 
     /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\VersionControl\GitInterface
@@ -104,11 +106,11 @@ class ReleaserTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->processFactoryMock = $this->getMockBuilder(ProcessFactory::class)
+        $this->processPoolFactoryMock = $this->getMockBuilder(ProcessPoolFactoryInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->processMock = $this->getMockBuilder(Process::class)
+        $this->processPoolMock = $this->getMockBuilder(ProcessPoolInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -119,7 +121,7 @@ class ReleaserTest extends Unit
         $this->releaser = new Releaser(
             $this->configurationLoaderMock,
             $this->filesystemMock,
-            $this->processFactoryMock,
+            $this->processPoolFactoryMock,
             $this->gitMock,
             $this->pathToBinDirectory
         );
@@ -401,17 +403,22 @@ class ReleaserTest extends Unit
             ->method('key')
             ->willReturn($repositoryName);
 
-        $this->processFactoryMock->expects($this->atLeastOnce())
+        $this->processPoolFactoryMock->expects($this->atLeastOnce())
             ->method('create')
+            ->willReturn($this->processPoolMock);
+
+        $this->processPoolMock->expects($this->atLeastOnce())
+            ->method('addProcessByCommand')
             ->with([
                 sprintf('%sdandelion', $this->pathToBinDirectory),
                 ReleaseCommand::NAME,
                 $repositoryName,
                 $branch
-            ])->willReturn($this->processMock);
+            ])->willReturn($this->processPoolMock);
 
-        $this->processMock->expects($this->atLeastOnce())
-            ->method('start');
+        $this->processPoolMock->expects($this->atLeastOnce())
+            ->method('start')
+            ->willReturn($this->processPoolMock);
 
         $this->assertEquals(
             $this->releaser,

@@ -8,12 +8,12 @@ use Dandelion\Configuration\Configuration;
 use Dandelion\Configuration\ConfigurationLoaderInterface;
 use Dandelion\Configuration\Repository;
 use Dandelion\Console\Command\SplitCommand;
-use Dandelion\Process\ProcessFactory;
+use Dandelion\Process\ProcessPoolFactoryInterface;
+use Dandelion\Process\ProcessPoolInterface;
 use Dandelion\VersionControl\GitInterface;
 use Dandelion\VersionControl\SplitshLiteInterface;
 use Exception;
 use Iterator;
-use Symfony\Component\Process\Process;
 
 use function sha1;
 use function sprintf;
@@ -51,14 +51,14 @@ class SplitterTest extends Unit
     protected $repositoryMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Process\ProcessFactory
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Process\ProcessPoolFactoryInterface
      */
-    protected $processFactoryMock;
+    protected $processPoolFactoryMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Symfony\Component\Process\Process
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Process\ProcessPoolInterface
      */
-    protected $processMock;
+    protected $processPoolMock;
 
     /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\VersionControl\GitInterface
@@ -104,11 +104,11 @@ class SplitterTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->processFactoryMock = $this->getMockBuilder(ProcessFactory::class)
+        $this->processPoolFactoryMock = $this->getMockBuilder(ProcessPoolFactoryInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->processMock = $this->getMockBuilder(Process::class)
+        $this->processPoolMock = $this->getMockBuilder(ProcessPoolInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -122,7 +122,7 @@ class SplitterTest extends Unit
 
         $this->splitter = new Splitter(
             $this->configurationLoaderMock,
-            $this->processFactoryMock,
+            $this->processPoolFactoryMock,
             $this->gitMock,
             $this->splitshLiteMock,
             $this->pathToBinDirectory
@@ -281,17 +281,22 @@ class SplitterTest extends Unit
             ->method('key')
             ->willReturn($repositoryName);
 
-        $this->processFactoryMock->expects($this->atLeastOnce())
+        $this->processPoolFactoryMock->expects($this->atLeastOnce())
             ->method('create')
+            ->willReturn($this->processPoolMock);
+
+        $this->processPoolMock->expects($this->atLeastOnce())
+            ->method('addProcessByCommand')
             ->with([
                 sprintf('%sdandelion', $this->pathToBinDirectory),
                 SplitCommand::NAME,
                 $repositoryName,
                 $branch
-            ])->willReturn($this->processMock);
+            ])->willReturn($this->processPoolMock);
 
-        $this->processMock->expects($this->atLeastOnce())
-            ->method('start');
+        $this->processPoolMock->expects($this->atLeastOnce())
+            ->method('start')
+            ->willReturn($this->processPoolMock);
 
         $this->assertEquals(
             $this->splitter,

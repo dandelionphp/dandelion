@@ -6,9 +6,11 @@ namespace Dandelion\Operation;
 
 use Dandelion\Configuration\ConfigurationLoaderInterface;
 use Dandelion\Configuration\Repository;
+use Dandelion\Console\Command\ReleaseCommand;
 use Dandelion\Exception\RepositoryNotFoundException;
 use Dandelion\Filesystem\FilesystemInterface;
 use Dandelion\Process\ProcessFactory;
+use Dandelion\Process\ProcessPoolFactoryInterface;
 use Dandelion\VersionControl\GitInterface;
 
 use function sprintf;
@@ -26,9 +28,9 @@ class Releaser implements ReleaserInterface
     protected $filesystem;
 
     /**
-     * @var \Dandelion\Process\ProcessFactory
+     * @var \Dandelion\Process\ProcessPoolFactoryInterface
      */
-    protected $processFactory;
+    protected $processPoolFactory;
 
     /**
      * @var \Dandelion\VersionControl\GitInterface
@@ -43,20 +45,20 @@ class Releaser implements ReleaserInterface
     /**
      * @param \Dandelion\Configuration\ConfigurationLoaderInterface $configurationLoader
      * @param \Dandelion\Filesystem\FilesystemInterface $filesystem
-     * @param \Dandelion\Process\ProcessFactory $processFactory
+     * @param \Dandelion\Process\ProcessPoolFactoryInterface $processPoolFactory
      * @param \Dandelion\VersionControl\GitInterface $git
      * @param string $binDir
      */
     public function __construct(
         ConfigurationLoaderInterface $configurationLoader,
         FilesystemInterface $filesystem,
-        ProcessFactory $processFactory,
+        ProcessPoolFactoryInterface $processPoolFactory,
         GitInterface $git,
         string $binDir
     ) {
         $this->configurationLoader = $configurationLoader;
         $this->filesystem = $filesystem;
-        $this->processFactory = $processFactory;
+        $this->processPoolFactory = $processPoolFactory;
         $this->git = $git;
         $this->binDir = $binDir;
     }
@@ -125,34 +127,20 @@ class Releaser implements ReleaserInterface
     public function releaseAll(string $branch): ReleaserInterface
     {
         $configuration = $this->configurationLoader->load();
+        $processPool = $this->processPoolFactory->create();
 
         foreach ($configuration->getRepositories() as $repositoryName => $repository) {
-            $this->releaseAsProcess($repositoryName, $branch);
+            $command = [
+                sprintf('%sdandelion', $this->binDir),
+                ReleaseCommand::NAME,
+                $repositoryName,
+                $branch
+            ];
+
+            $processPool->addProcessByCommand($command);
         }
 
-        return $this;
-    }
-
-    /**
-     * @param string $repositoryName
-     * @param string $branch
-     *
-     * @return \Dandelion\Operation\ReleaserInterface
-     */
-    protected function releaseAsProcess(
-        string $repositoryName,
-        string $branch
-    ): ReleaserInterface {
-        $command = $command = [
-            sprintf('%sdandelion', $this->binDir),
-            'release',
-            $repositoryName,
-            $branch
-        ];
-
-        $process = $this->processFactory->create($command);
-
-        $process->start();
+        $processPool->start();
 
         return $this;
     }

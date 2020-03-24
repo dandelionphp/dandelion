@@ -16,6 +16,7 @@ class ValidateCommand extends Command
 {
     public const NAME = 'validate';
     public const DESCRIPTION = 'Validates dandelion.json.';
+
     /**
      * @var \Dandelion\Configuration\ConfigurationValidatorInterface
      */
@@ -66,7 +67,7 @@ class ValidateCommand extends Command
             return 1;
         }
 
-        $this->logger->info('Configuration is valid.');
+        $this->logger->notice('Configuration is valid.');
         return 0;
     }
 }
