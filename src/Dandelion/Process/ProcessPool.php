@@ -67,7 +67,8 @@ class ProcessPool implements ProcessPoolInterface
         $logger = $this->logger;
 
         foreach ($this->processes as $process) {
-            $this->runningProcesses[] = $process->start(static function (string $type, string $data) use ($logger) {
+            $this->runningProcesses[] = $process;
+            $process->start(static function (string $type, string $data) use ($logger) {
                 // @codeCoverageIgnoreStart
                 $logLevel = Logger::NOTICE;
 
