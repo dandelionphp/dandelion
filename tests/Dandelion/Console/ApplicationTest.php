@@ -12,14 +12,14 @@ use Symfony\Component\Console\Command\Command;
 class ApplicationTest extends Unit
 {
     /**
-     * @var \Dandelion\Console\Application
-     */
-    protected $application;
-
-    /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\Pimple\Container
      */
     protected $containerMock;
+
+    /**
+     * @var \Dandelion\Console\Application
+     */
+    protected $application;
 
     /**
      * @return void

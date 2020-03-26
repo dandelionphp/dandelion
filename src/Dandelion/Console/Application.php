@@ -68,6 +68,8 @@ class Application extends SymfonyApplication
      * @return int
      *
      * @throws \Exception
+     *
+     * @codeCoverageIgnore
      */
     public function run(InputInterface $input = null, OutputInterface $output = null): int
     {

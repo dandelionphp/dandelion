@@ -68,6 +68,7 @@ class ProcessPool implements ProcessPoolInterface
 
         foreach ($this->processes as $process) {
             $this->runningProcesses[] = $process->start(static function (string $type, string $data) use ($logger) {
+                // @codeCoverageIgnoreStart
                 $logLevel = Logger::NOTICE;
 
                 if ($type === Process::ERR) {
@@ -75,6 +76,7 @@ class ProcessPool implements ProcessPoolInterface
                 }
 
                 $logger->log($logLevel, $data);
+                // @codeCoverageIgnoreEnd
             });
         }
 
