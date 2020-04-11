@@ -1,8 +1,8 @@
 <?php
 
-namespace Dandelion\Process;
+declare(strict_types=1);
 
-use Psr\Log\LoggerInterface;
+namespace Dandelion\Process;
 
 class ProcessPoolFactory implements ProcessPoolFactoryInterface
 {
@@ -12,20 +12,12 @@ class ProcessPoolFactory implements ProcessPoolFactoryInterface
     protected $processFactory;
 
     /**
-     * @var \Psr\Log\LoggerInterface
-     */
-    protected $logger;
-
-    /**
      * @param \Dandelion\Process\ProcessFactory $processFactory
-     * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(
-        ProcessFactory $processFactory,
-        LoggerInterface $logger
+        ProcessFactory $processFactory
     ) {
         $this->processFactory = $processFactory;
-        $this->logger = $logger;
     }
 
     /**
@@ -34,8 +26,7 @@ class ProcessPoolFactory implements ProcessPoolFactoryInterface
     public function create(): ProcessPoolInterface
     {
         return new ProcessPool(
-            $this->processFactory,
-            $this->logger
+            $this->processFactory
         );
     }
 }

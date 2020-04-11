@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Dandelion\Console\Command;
 
 use Codeception\Test\Unit;
-use Dandelion\Operation\ReleaserInterface;
+use Dandelion\Operation\AbstractOperation;
 use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -21,7 +23,7 @@ class ReleaseAllCommandTest extends Unit
     protected $outputMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\ReleaserInterface
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\AbstractOperation
      */
     protected $releaserMock;
 
@@ -45,7 +47,7 @@ class ReleaseAllCommandTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->releaserMock = $this->getMockBuilder(ReleaserInterface::class)
+        $this->releaserMock = $this->getMockBuilder(AbstractOperation::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -83,7 +85,7 @@ class ReleaseAllCommandTest extends Unit
             ->willReturn($branch);
 
         $this->releaserMock->expects($this->atLeastOnce())
-            ->method('releaseAll')
+            ->method('executeForAllRepositories')
             ->with($branch);
 
         $this->assertEquals(0, $this->releaseAllCommand->run($this->inputMock, $this->outputMock));
@@ -102,7 +104,7 @@ class ReleaseAllCommandTest extends Unit
             ->willReturn($branch);
 
         $this->releaserMock->expects($this->never())
-            ->method('releaseAll');
+            ->method('executeForAllRepositories');
 
         try {
             $this->releaseAllCommand->run($this->inputMock, $this->outputMock);

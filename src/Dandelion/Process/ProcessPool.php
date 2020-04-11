@@ -1,10 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Dandelion\Process;
 
-use Monolog\Logger;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Process\Process;
+use Closure;
 
 class ProcessPool implements ProcessPoolInterface
 {
@@ -19,38 +19,37 @@ class ProcessPool implements ProcessPoolInterface
     protected $processes;
 
     /**
+     * @var \Closure[]
+     */
+    protected $callbacks;
+
+    /**
      * @var \Dandelion\Process\ProcessFactory
      */
     protected $processFactory;
 
     /**
-     * @var \Psr\Log\LoggerInterface
-     */
-    protected $logger;
-
-    /**
      * @param \Dandelion\Process\ProcessFactory $processFactory
-     * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(
-        ProcessFactory $processFactory,
-        LoggerInterface $logger
+        ProcessFactory $processFactory
     ) {
         $this->processes = [];
+        $this->callbacks = [];
         $this->runningProcesses = [];
         $this->processFactory = $processFactory;
-        $this->logger = $logger;
     }
-
 
     /**
      * @param string[] $command
+     * @param \Closure|null $callback
      *
      * @return \Dandelion\Process\ProcessPoolInterface
      */
-    public function addProcessByCommand(array $command): ProcessPoolInterface
+    public function addProcess(array $command, ?Closure $callback = null): ProcessPoolInterface
     {
         $this->processes[] = $this->processFactory->create($command);
+        $this->callbacks[] = $callback;
 
         return $this;
     }
@@ -64,21 +63,9 @@ class ProcessPool implements ProcessPoolInterface
             return $this;
         }
 
-        $logger = $this->logger;
-
         foreach ($this->processes as $process) {
             $this->runningProcesses[] = $process;
-            $process->start(static function (string $type, string $data) use ($logger) {
-                // @codeCoverageIgnoreStart
-                $logLevel = Logger::NOTICE;
-
-                if ($type === Process::ERR) {
-                    $logLevel = Logger::ERROR;
-                }
-
-                $logger->log($logLevel, $data);
-                // @codeCoverageIgnoreEnd
-            });
+            $process->start();
         }
 
         return $this->wait();
@@ -93,6 +80,10 @@ class ProcessPool implements ProcessPoolInterface
             foreach ($this->runningProcesses as $index => $runningProcess) {
                 if ($runningProcess->isRunning()) {
                     continue;
+                }
+
+                if ($this->callbacks[$index] !== null) {
+                    $this->callbacks[$index]($runningProcess);
                 }
 
                 unset($this->runningProcesses[$index]);

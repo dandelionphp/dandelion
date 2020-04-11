@@ -9,28 +9,18 @@ use Dandelion\Configuration\Repository;
 use Dandelion\Console\Command\ReleaseCommand;
 use Dandelion\Exception\RepositoryNotFoundException;
 use Dandelion\Filesystem\FilesystemInterface;
-use Dandelion\Process\ProcessFactory;
+use Dandelion\Operation\Result\MessageFactoryInterface;
 use Dandelion\Process\ProcessPoolFactoryInterface;
 use Dandelion\VersionControl\GitInterface;
 
 use function sprintf;
 
-class Releaser implements ReleaserInterface
+class Releaser extends AbstractOperation
 {
-    /**
-     * @var \Dandelion\Configuration\ConfigurationLoaderInterface
-     */
-    protected $configurationLoader;
-
     /**
      * @var \Dandelion\Filesystem\FilesystemInterface
      */
     protected $filesystem;
-
-    /**
-     * @var \Dandelion\Process\ProcessPoolFactoryInterface
-     */
-    protected $processPoolFactory;
 
     /**
      * @var \Dandelion\VersionControl\GitInterface
@@ -38,14 +28,11 @@ class Releaser implements ReleaserInterface
     protected $git;
 
     /**
-     * @var string
-     */
-    protected $binDir;
-
-    /**
      * @param \Dandelion\Configuration\ConfigurationLoaderInterface $configurationLoader
      * @param \Dandelion\Filesystem\FilesystemInterface $filesystem
      * @param \Dandelion\Process\ProcessPoolFactoryInterface $processPoolFactory
+     * @param \Dandelion\Operation\ResultFactoryInterface $resultFactory
+     * @param \Dandelion\Operation\Result\MessageFactoryInterface $messageFactory
      * @param \Dandelion\VersionControl\GitInterface $git
      * @param string $binDir
      */
@@ -53,27 +40,28 @@ class Releaser implements ReleaserInterface
         ConfigurationLoaderInterface $configurationLoader,
         FilesystemInterface $filesystem,
         ProcessPoolFactoryInterface $processPoolFactory,
+        ResultFactoryInterface $resultFactory,
+        MessageFactoryInterface $messageFactory,
         GitInterface $git,
         string $binDir
     ) {
-        $this->configurationLoader = $configurationLoader;
+        parent::__construct($configurationLoader, $processPoolFactory, $resultFactory, $messageFactory, $binDir);
         $this->filesystem = $filesystem;
-        $this->processPoolFactory = $processPoolFactory;
         $this->git = $git;
-        $this->binDir = $binDir;
     }
 
     /**
      * @param string $repositoryName
      * @param string $branch
      *
-     * @return \Dandelion\Operation\ReleaserInterface
-     * @throws \Exception
+     * @return \Dandelion\Operation\AbstractOperation
+     *
+     * @throws \Dandelion\Exception\RepositoryNotFoundException
      */
-    public function release(
+    public function executeForSingleRepository(
         string $repositoryName,
         string $branch
-    ): ReleaserInterface {
+    ): AbstractOperation {
         $configuration = $this->configurationLoader->load();
         $repositories = $configuration->getRepositories();
 
@@ -88,7 +76,7 @@ class Releaser implements ReleaserInterface
         $currentWorkingDirectory = $this->filesystem->getCurrentWorkingDirectory();
         $this->filesystem->changeDirectory($tempDirectory);
 
-        $this->doRelease($branch, $repository);
+        $this->doExecuteForSingleRepository($branch, $repository);
 
         $this->filesystem->changeDirectory($currentWorkingDirectory)
             ->removeDirectory($tempDirectory);
@@ -100,9 +88,9 @@ class Releaser implements ReleaserInterface
      * @param string $branch
      * @param \Dandelion\Configuration\Repository $repository
      *
-     * @return \Dandelion\Operation\ReleaserInterface
+     * @return \Dandelion\Operation\AbstractOperation
      */
-    protected function doRelease(string $branch, Repository $repository): ReleaserInterface
+    protected function doExecuteForSingleRepository(string $branch, Repository $repository): AbstractOperation
     {
         $version = $repository->getVersion();
 
@@ -120,28 +108,18 @@ class Releaser implements ReleaserInterface
     }
 
     /**
+     * @param string $repositoryName
      * @param string $branch
      *
-     * @return \Dandelion\Operation\ReleaserInterface
+     * @return string[]
      */
-    public function releaseAll(string $branch): ReleaserInterface
+    protected function getCommand(string $repositoryName, string $branch): array
     {
-        $configuration = $this->configurationLoader->load();
-        $processPool = $this->processPoolFactory->create();
-
-        foreach ($configuration->getRepositories() as $repositoryName => $repository) {
-            $command = [
-                sprintf('%sdandelion', $this->binDir),
-                ReleaseCommand::NAME,
-                $repositoryName,
-                $branch
-            ];
-
-            $processPool->addProcessByCommand($command);
-        }
-
-        $processPool->start();
-
-        return $this;
+        return [
+            sprintf('%sdandelion', $this->binDir),
+            ReleaseCommand::NAME,
+            $repositoryName,
+            $branch
+        ];
     }
 }

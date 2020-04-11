@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Dandelion\Operation;
 
 use ArrayObject;
@@ -8,6 +10,7 @@ use Dandelion\Configuration\Configuration;
 use Dandelion\Configuration\ConfigurationLoaderInterface;
 use Dandelion\Configuration\Repository;
 use Dandelion\Console\Command\SplitCommand;
+use Dandelion\Operation\Result\MessageFactoryInterface;
 use Dandelion\Process\ProcessPoolFactoryInterface;
 use Dandelion\Process\ProcessPoolInterface;
 use Dandelion\VersionControl\GitInterface;
@@ -21,7 +24,7 @@ use function sprintf;
 class SplitterTest extends Unit
 {
     /**
-     * @var \Dandelion\Operation\SplitterInterface
+     * @var \Dandelion\Operation\AbstractOperation
      */
     protected $splitter;
 
@@ -59,6 +62,21 @@ class SplitterTest extends Unit
      * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Process\ProcessPoolInterface
      */
     protected $processPoolMock;
+
+    /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\ResultFactoryInterface
+     */
+    protected $resultFactoryMock;
+
+    /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\ResultInterface
+     */
+    protected $resultMock;
+
+    /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\Result\MessageFactoryInterface
+     */
+    protected $messageFactoryMock;
 
     /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\VersionControl\GitInterface
@@ -112,6 +130,18 @@ class SplitterTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
+        $this->resultFactoryMock = $this->getMockBuilder(ResultFactoryInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->resultMock = $this->getMockBuilder(ResultInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->messageFactoryMock = $this->getMockBuilder(MessageFactoryInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
         $this->gitMock = $this->getMockBuilder(GitInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -123,6 +153,8 @@ class SplitterTest extends Unit
         $this->splitter = new Splitter(
             $this->configurationLoaderMock,
             $this->processPoolFactoryMock,
+            $this->resultFactoryMock,
+            $this->messageFactoryMock,
             $this->gitMock,
             $this->splitshLiteMock,
             $this->pathToBinDirectory
@@ -134,7 +166,7 @@ class SplitterTest extends Unit
      *
      * @return void
      */
-    public function testSplit(): void
+    public function testExecuteForSingleRepository(): void
     {
         $repositoryPath = '/path/to/package';
         $repositoryName = 'package';
@@ -188,7 +220,7 @@ class SplitterTest extends Unit
 
         $this->assertEquals(
             $this->splitter,
-            $this->splitter->split($repositoryName, $branch)
+            $this->splitter->executeForSingleRepository($repositoryName, $branch)
         );
     }
 
@@ -197,7 +229,7 @@ class SplitterTest extends Unit
      *
      * @return void
      */
-    public function testSplitWithNonExistingRepository(): void
+    public function testExecuteForSingleRepositoriesWithNonExistingRepository(): void
     {
         $repositoryName = 'package';
         $branch = 'master';
@@ -238,7 +270,7 @@ class SplitterTest extends Unit
             ->method('pushForcefully');
 
         try {
-            $this->splitter->split($repositoryName, $branch);
+            $this->splitter->executeForSingleRepository($repositoryName, $branch);
         } catch (Exception $e) {
             return;
         }
@@ -249,7 +281,7 @@ class SplitterTest extends Unit
     /**
      * @return void
      */
-    public function testSplitAll(): void
+    public function testExecuteForAllRepositories(): void
     {
         $repositoryName = 'package';
         $branch = 'master';
@@ -257,6 +289,14 @@ class SplitterTest extends Unit
         $this->configurationLoaderMock->expects($this->atLeastOnce())
             ->method('load')
             ->willReturn($this->configurationMock);
+
+        $this->processPoolFactoryMock->expects($this->atLeastOnce())
+            ->method('create')
+            ->willReturn($this->processPoolMock);
+
+        $this->resultFactoryMock->expects($this->atLeastOnce())
+            ->method('create')
+            ->willReturn($this->resultMock);
 
         $this->configurationMock->expects($this->atLeastOnce())
             ->method('getRepositories')
@@ -281,12 +321,8 @@ class SplitterTest extends Unit
             ->method('key')
             ->willReturn($repositoryName);
 
-        $this->processPoolFactoryMock->expects($this->atLeastOnce())
-            ->method('create')
-            ->willReturn($this->processPoolMock);
-
         $this->processPoolMock->expects($this->atLeastOnce())
-            ->method('addProcessByCommand')
+            ->method('addProcess')
             ->with([
                 sprintf('%sdandelion', $this->pathToBinDirectory),
                 SplitCommand::NAME,
@@ -299,8 +335,8 @@ class SplitterTest extends Unit
             ->willReturn($this->processPoolMock);
 
         $this->assertEquals(
-            $this->splitter,
-            $this->splitter->splitAll()
+            $this->resultMock,
+            $this->splitter->executeForAllRepositories()
         );
     }
 }

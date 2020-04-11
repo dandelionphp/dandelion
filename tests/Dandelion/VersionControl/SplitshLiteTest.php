@@ -10,6 +10,7 @@ use Dandelion\Environment\OperatingSystemInterface;
 use Dandelion\Process\ProcessFactory;
 use Exception;
 use Symfony\Component\Process\Process;
+
 use function sha1;
 use function sprintf;
 use function strtolower;

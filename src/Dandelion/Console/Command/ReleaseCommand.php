@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Dandelion\Console\Command;
 
-use Dandelion\Operation\ReleaserInterface;
+use Dandelion\Operation\AbstractOperation;
 use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -19,15 +19,15 @@ class ReleaseCommand extends Command
     public const DESCRIPTION = 'Releases package.';
 
     /**
-     * @var \Dandelion\Operation\ReleaserInterface
+     * @var \Dandelion\Operation\AbstractOperation
      */
     protected $releaser;
 
     /**
-     * @param \Dandelion\Operation\ReleaserInterface $releaser
+     * @param \Dandelion\Operation\AbstractOperation $releaser
      */
     public function __construct(
-        ReleaserInterface $releaser
+        AbstractOperation $releaser
     ) {
         parent::__construct();
         $this->releaser = $releaser;
@@ -63,7 +63,7 @@ class ReleaseCommand extends Command
             throw new InvalidArgumentException('Unsupported type for given argument');
         }
 
-        $this->releaser->release($repositoryName, $branch);
+        $this->releaser->executeForSingleRepository($repositoryName, $branch);
 
         return 0;
     }

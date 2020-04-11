@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Dandelion\Process;
 
 use Closure;
@@ -13,11 +15,6 @@ class ProcessPoolTest extends Unit
      * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Process\ProcessFactory
      */
     protected $processFactoryMock;
-
-    /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Psr\Log\LoggerInterface
-     */
-    protected $loggerMock;
 
     /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\Symfony\Component\Process\Process
@@ -40,24 +37,19 @@ class ProcessPoolTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->loggerMock = $this->getMockBuilder(LoggerInterface::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
         $this->processMock = $this->getMockBuilder(Process::class)
             ->disableOriginalConstructor()
             ->getMock();
 
         $this->processPool = new ProcessPool(
-            $this->processFactoryMock,
-            $this->loggerMock
+            $this->processFactoryMock
         );
     }
 
     /**
      * @return void
      */
-    public function testAddProcessByCommand(): void
+    public function testAddProcess(): void
     {
         $command = ['ls', '-la'];
 
@@ -66,7 +58,7 @@ class ProcessPoolTest extends Unit
             ->with($command)
             ->willReturn($this->processMock);
 
-        $this->assertEquals($this->processPool, $this->processPool->addProcessByCommand($command));
+        $this->assertEquals($this->processPool, $this->processPool->addProcess($command));
     }
 
     /**
@@ -80,9 +72,11 @@ class ProcessPoolTest extends Unit
     /**
      * @return void
      */
-    public function testAddProcessByCommandAndStart(): void
+    public function testAddProcessAndStart(): void
     {
         $command = ['ls', '-la'];
+        $callback = static function () {
+        };
 
         $this->processFactoryMock->expects($this->atLeastOnce())
             ->method('create')
@@ -91,14 +85,13 @@ class ProcessPoolTest extends Unit
 
         $this->processMock->expects($this->atLeastOnce())
             ->method('start')
-            ->with($this->isInstanceOf(Closure::class))
             ->willReturn($this->processMock);
 
         $this->processMock->expects($this->atLeastOnce())
             ->method('isRunning')
             ->willReturnOnConsecutiveCalls(true, false);
 
-        $this->assertEquals($this->processPool, $this->processPool->addProcessByCommand($command));
+        $this->assertEquals($this->processPool, $this->processPool->addProcess($command, $callback));
         $this->assertEquals($this->processPool, $this->processPool->start());
     }
 }

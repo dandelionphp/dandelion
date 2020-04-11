@@ -1,11 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Dandelion\Console\Command;
 
 use Dandelion\Configuration\ConfigurationValidatorInterface;
-use Dandelion\Exception\ConfigurationNotValidException;
 use Exception;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -23,21 +23,13 @@ class ValidateCommand extends Command
     protected $configurationValidator;
 
     /**
-     * @var \Psr\Log\LoggerInterface
-     */
-    protected $logger;
-
-    /**
      * @param \Dandelion\Configuration\ConfigurationValidatorInterface $configurationValidator
-     * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(
-        ConfigurationValidatorInterface $configurationValidator,
-        LoggerInterface $logger
+        ConfigurationValidatorInterface $configurationValidator
     ) {
         parent::__construct();
         $this->configurationValidator = $configurationValidator;
-        $this->logger = $logger;
     }
 
     /**
@@ -63,11 +55,12 @@ class ValidateCommand extends Command
         try {
             $this->configurationValidator->validate();
         } catch (Exception $e) {
-            $this->logger->error($e->getMessage());
+            $output->writeln('<error>Configuration is invalid.</error>');
+            $output->writeln(sprintf('<error>%s</error>', $e->getMessage()));
             return 1;
         }
 
-        $this->logger->notice('Configuration is valid.');
+        $output->writeln('<info>Configuration is valid.</info>');
         return 0;
     }
 }

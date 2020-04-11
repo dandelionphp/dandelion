@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Dandelion\Environment;
 
 use Codeception\Test\Unit;
+
 use function php_uname;
 
 class OperatingSystemTest extends Unit

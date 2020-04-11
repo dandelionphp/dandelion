@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Dandelion\Console\Command;
 
 use Codeception\Test\Unit;
-use Dandelion\Operation\SplitterInterface;
+use Dandelion\Operation\AbstractOperation;
 use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -23,7 +23,7 @@ class SplitAllCommandTest extends Unit
     protected $outputMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\SplitterInterface
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\AbstractOperation
      */
     protected $splitterMock;
 
@@ -47,7 +47,7 @@ class SplitAllCommandTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->splitterMock = $this->getMockBuilder(SplitterInterface::class)
+        $this->splitterMock = $this->getMockBuilder(AbstractOperation::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -85,7 +85,7 @@ class SplitAllCommandTest extends Unit
             ->willReturn($branch);
 
         $this->splitterMock->expects($this->atLeastOnce())
-            ->method('splitAll')
+            ->method('executeForAllRepositories')
             ->with($branch);
 
         $this->assertEquals(0, $this->splitAllCommand->run($this->inputMock, $this->outputMock));
@@ -106,7 +106,7 @@ class SplitAllCommandTest extends Unit
             ->willReturn($branch);
 
         $this->splitterMock->expects($this->never())
-            ->method('splitAll');
+            ->method('executeForAllRepositories');
 
         try {
             $this->splitAllCommand->run($this->inputMock, $this->outputMock);

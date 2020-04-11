@@ -7,25 +7,15 @@ namespace Dandelion\Operation;
 use Dandelion\Configuration\ConfigurationLoaderInterface;
 use Dandelion\Console\Command\SplitCommand;
 use Dandelion\Exception\RepositoryNotFoundException;
-use Dandelion\Process\ProcessFactory;
+use Dandelion\Operation\Result\MessageFactoryInterface;
 use Dandelion\Process\ProcessPoolFactoryInterface;
 use Dandelion\VersionControl\GitInterface;
 use Dandelion\VersionControl\SplitshLiteInterface;
 
 use function sprintf;
 
-class Splitter implements SplitterInterface
+class Splitter extends AbstractOperation
 {
-    /**
-     * @var \Dandelion\Configuration\ConfigurationLoaderInterface
-     */
-    protected $configurationLoader;
-
-    /**
-     * @var \Dandelion\Process\ProcessPoolFactoryInterface
-     */
-    protected $processPoolFactory;
-
     /**
      * @var \Dandelion\VersionControl\GitInterface
      */
@@ -37,13 +27,10 @@ class Splitter implements SplitterInterface
     protected $splitshLite;
 
     /**
-     * @var string
-     */
-    protected $binDir;
-
-    /**
      * @param \Dandelion\Configuration\ConfigurationLoaderInterface $configurationLoader
      * @param \Dandelion\Process\ProcessPoolFactoryInterface $processPoolFactory
+     * @param \Dandelion\Operation\ResultFactoryInterface $resultFactory
+     * @param \Dandelion\Operation\Result\MessageFactoryInterface $messageFactory
      * @param \Dandelion\VersionControl\GitInterface $git
      * @param \Dandelion\VersionControl\SplitshLiteInterface $splitshLite
      * @param string $binDir
@@ -51,26 +38,27 @@ class Splitter implements SplitterInterface
     public function __construct(
         ConfigurationLoaderInterface $configurationLoader,
         ProcessPoolFactoryInterface $processPoolFactory,
+        ResultFactoryInterface $resultFactory,
+        MessageFactoryInterface $messageFactory,
         GitInterface $git,
         SplitshLiteInterface $splitshLite,
         string $binDir
     ) {
-        $this->configurationLoader = $configurationLoader;
-        $this->processPoolFactory = $processPoolFactory;
+        parent::__construct($configurationLoader, $processPoolFactory, $resultFactory, $messageFactory, $binDir);
+
         $this->git = $git;
         $this->splitshLite = $splitshLite;
-        $this->binDir = $binDir;
     }
 
     /**
      * @param string $repositoryName
      * @param string $branch
      *
-     * @return \Dandelion\Operation\SplitterInterface
+     * @return \Dandelion\Operation\AbstractOperation
      *
-     * @throws \Exception
+     * @throws \Dandelion\Exception\RepositoryNotFoundException
      */
-    public function split(string $repositoryName, string $branch): SplitterInterface
+    public function executeForSingleRepository(string $repositoryName, string $branch): AbstractOperation
     {
         $configuration = $this->configurationLoader->load();
         $repositories = $configuration->getRepositories();
@@ -94,28 +82,18 @@ class Splitter implements SplitterInterface
     }
 
     /**
+     * @param string $repositoryName
      * @param string $branch
      *
-     * @return \Dandelion\Operation\SplitterInterface
+     * @return string[]
      */
-    public function splitAll(string $branch = 'master'): SplitterInterface
+    protected function getCommand(string $repositoryName, string $branch): array
     {
-        $configuration = $this->configurationLoader->load();
-        $processPool = $this->processPoolFactory->create();
-
-        foreach ($configuration->getRepositories() as $repositoryName => $repository) {
-            $command = [
-                sprintf('%sdandelion', $this->binDir),
-                SplitCommand::NAME,
-                $repositoryName,
-                $branch
-            ];
-
-            $processPool->addProcessByCommand($command);
-        }
-
-        $processPool->start();
-
-        return $this;
+        return [
+            sprintf('%sdandelion', $this->binDir),
+            SplitCommand::NAME,
+            $repositoryName,
+            $branch
+        ];
     }
 }
