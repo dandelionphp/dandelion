@@ -55,12 +55,12 @@ class ValidateCommand extends Command
         try {
             $this->configurationValidator->validate();
         } catch (Exception $e) {
-            $output->writeln('<error>Configuration is invalid.</error>');
-            $output->writeln(sprintf('<error>%s</error>', $e->getMessage()));
+            $output->writeln('Configuration is invalid.');
+            $output->writeln(sprintf('<fg=red>%s</>', $e->getMessage()));
             return 1;
         }
 
-        $output->writeln('<info>Configuration is valid.</info>');
+        $output->writeln('Configuration is valid.');
         return 0;
     }
 }

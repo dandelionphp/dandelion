@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Dandelion\Console\Command;
 
 use Dandelion\Operation\AbstractOperation;
+use Dandelion\Operation\Result\MessageInterface;
 use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -60,7 +61,18 @@ class SplitAllCommand extends Command
             throw new InvalidArgumentException('Unsupported type for given argument');
         }
 
-        $this->splitter->executeForAllRepositories($branch);
+        $output->writeln('Splitting monorepo packages:');
+        $output->writeln('---------------------------------');
+
+        $result = $this->splitter->executeForAllRepositories($branch);
+
+        foreach ($result->getMessages() as $message) {
+            $symbol = $message->getType() === MessageInterface::TYPE_INFO ? '<fg=green>✔</>' : '<fg=red>✗</>';
+            $output->writeln(sprintf('%s %s', $symbol, $message->getText()));
+        }
+
+        $output->writeln('---------------------------------');
+        $output->writeln('Finished');
 
         return 0;
     }

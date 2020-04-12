@@ -85,7 +85,7 @@ class ValidateCommandTest extends Unit
 
         $this->outputMock->expects($this->atLeastOnce())
             ->method('writeln')
-            ->with('<info>Configuration is valid.</info>');
+            ->with('Configuration is valid.');
 
         $this->assertEquals(0, $this->validateCommand->run($this->inputMock, $this->outputMock));
     }
@@ -103,7 +103,7 @@ class ValidateCommandTest extends Unit
 
         $this->outputMock->expects($this->atLeastOnce())
             ->method('writeln')
-            ->withConsecutive(['<error>Configuration is invalid.</error>'], ['<error>...</error>']);
+            ->withConsecutive(['Configuration is invalid.'], ['<fg=red>...</>']);
 
         $this->assertEquals(1, $this->validateCommand->run($this->inputMock, $this->outputMock));
     }

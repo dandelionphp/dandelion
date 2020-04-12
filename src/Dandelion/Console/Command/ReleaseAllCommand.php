@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Dandelion\Console\Command;
 
 use Dandelion\Operation\AbstractOperation;
+use Dandelion\Operation\Result\MessageInterface;
 use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -12,6 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function is_string;
+use function sprintf;
 
 class ReleaseAllCommand extends Command
 {
@@ -60,7 +62,18 @@ class ReleaseAllCommand extends Command
             throw new InvalidArgumentException('Unsupported type for given argument');
         }
 
-        $this->releaser->executeForAllRepositories($branch);
+        $output->writeln('Releasing monorepo packages:');
+        $output->writeln('---------------------------------');
+
+        $result = $this->releaser->executeForAllRepositories($branch);
+
+        foreach ($result->getMessages() as $message) {
+            $symbol = $message->getType() === MessageInterface::TYPE_INFO ? '<fg=green>✔</>' : '<fg=red>✗</>';
+            $output->writeln(sprintf('%s %s', $symbol, $message->getText()));
+        }
+
+        $output->writeln('---------------------------------');
+        $output->writeln('Finished');
 
         return 0;
     }
