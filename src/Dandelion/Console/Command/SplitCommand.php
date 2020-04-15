@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Dandelion\Console\Command;
 
-use Dandelion\Operation\SplitterInterface;
+use Dandelion\Operation\AbstractOperation;
 use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -19,15 +19,15 @@ class SplitCommand extends Command
     public const DESCRIPTION = 'Splits package from mono to split.';
 
     /**
-     * @var \Dandelion\Operation\SplitterInterface
+     * @var \Dandelion\Operation\AbstractOperation
      */
     protected $splitter;
 
     /**
-     * @param \Dandelion\Operation\SplitterInterface $splitter
+     * @param \Dandelion\Operation\AbstractOperation $splitter
      */
     public function __construct(
-        SplitterInterface $splitter
+        AbstractOperation $splitter
     ) {
         parent::__construct();
         $this->splitter = $splitter;
@@ -62,7 +62,7 @@ class SplitCommand extends Command
             throw new InvalidArgumentException('Unsupported type for given arguments');
         }
 
-        $this->splitter->split($repositoryName, $branch);
+        $this->splitter->executeForSingleRepository($repositoryName, $branch);
 
         return 0;
     }

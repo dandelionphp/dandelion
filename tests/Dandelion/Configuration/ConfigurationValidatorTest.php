@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Dandelion\Configuration;
 
 use Codeception\Test\Unit;

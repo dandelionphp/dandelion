@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Dandelion\Console\Command;
 
 use Codeception\Test\Unit;
-use Dandelion\Operation\SplitterInterface;
+use Dandelion\Operation\AbstractOperation;
 use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -23,7 +23,7 @@ class SplitCommandTest extends Unit
     protected $outputMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\SplitterInterface
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\AbstractOperation
      */
     protected $splitterMock;
 
@@ -47,7 +47,7 @@ class SplitCommandTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->splitterMock = $this->getMockBuilder(SplitterInterface::class)
+        $this->splitterMock = $this->getMockBuilder(AbstractOperation::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -86,7 +86,7 @@ class SplitCommandTest extends Unit
             ->willReturnOnConsecutiveCalls($repositoryName, $branch);
 
         $this->splitterMock->expects($this->atLeastOnce())
-            ->method('split')
+            ->method('executeForSingleRepository')
             ->with($repositoryName, $branch);
 
         $this->assertEquals(0, $this->splitCommand->run($this->inputMock, $this->outputMock));
@@ -108,7 +108,7 @@ class SplitCommandTest extends Unit
             ->willReturnOnConsecutiveCalls($repositoryName, $branch);
 
         $this->splitterMock->expects($this->never())
-            ->method('split');
+            ->method('executeForSingleRepository');
 
         try {
             $this->splitCommand->run($this->inputMock, $this->outputMock);

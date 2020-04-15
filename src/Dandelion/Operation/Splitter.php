@@ -7,24 +7,15 @@ namespace Dandelion\Operation;
 use Dandelion\Configuration\ConfigurationLoaderInterface;
 use Dandelion\Console\Command\SplitCommand;
 use Dandelion\Exception\RepositoryNotFoundException;
-use Dandelion\Process\ProcessFactory;
+use Dandelion\Operation\Result\MessageFactoryInterface;
+use Dandelion\Process\ProcessPoolFactoryInterface;
 use Dandelion\VersionControl\GitInterface;
 use Dandelion\VersionControl\SplitshLiteInterface;
 
 use function sprintf;
 
-class Splitter implements SplitterInterface
+class Splitter extends AbstractOperation
 {
-    /**
-     * @var \Dandelion\Configuration\ConfigurationLoaderInterface
-     */
-    protected $configurationLoader;
-
-    /**
-     * @var \Dandelion\Process\ProcessFactory
-     */
-    protected $processFactory;
-
     /**
      * @var \Dandelion\VersionControl\GitInterface
      */
@@ -36,40 +27,38 @@ class Splitter implements SplitterInterface
     protected $splitshLite;
 
     /**
-     * @var string
-     */
-    protected $binDir;
-
-    /**
      * @param \Dandelion\Configuration\ConfigurationLoaderInterface $configurationLoader
-     * @param \Dandelion\Process\ProcessFactory $processFactory
+     * @param \Dandelion\Process\ProcessPoolFactoryInterface $processPoolFactory
+     * @param \Dandelion\Operation\ResultFactoryInterface $resultFactory
+     * @param \Dandelion\Operation\Result\MessageFactoryInterface $messageFactory
      * @param \Dandelion\VersionControl\GitInterface $git
      * @param \Dandelion\VersionControl\SplitshLiteInterface $splitshLite
      * @param string $binDir
      */
     public function __construct(
         ConfigurationLoaderInterface $configurationLoader,
-        ProcessFactory $processFactory,
+        ProcessPoolFactoryInterface $processPoolFactory,
+        ResultFactoryInterface $resultFactory,
+        MessageFactoryInterface $messageFactory,
         GitInterface $git,
         SplitshLiteInterface $splitshLite,
         string $binDir
     ) {
-        $this->configurationLoader = $configurationLoader;
-        $this->processFactory = $processFactory;
+        parent::__construct($configurationLoader, $processPoolFactory, $resultFactory, $messageFactory, $binDir);
+
         $this->git = $git;
         $this->splitshLite = $splitshLite;
-        $this->binDir = $binDir;
     }
 
     /**
      * @param string $repositoryName
      * @param string $branch
      *
-     * @return \Dandelion\Operation\SplitterInterface
+     * @return \Dandelion\Operation\AbstractOperation
      *
-     * @throws \Exception
+     * @throws \Dandelion\Exception\RepositoryNotFoundException
      */
-    public function split(string $repositoryName, string $branch): SplitterInterface
+    public function executeForSingleRepository(string $repositoryName, string $branch): AbstractOperation
     {
         $configuration = $this->configurationLoader->load();
         $repositories = $configuration->getRepositories();
@@ -93,42 +82,18 @@ class Splitter implements SplitterInterface
     }
 
     /**
-     * @param string $branch
-     *
-     * @return \Dandelion\Operation\SplitterInterface
-     */
-    public function splitAll(string $branch = 'master'): SplitterInterface
-    {
-        $configuration = $this->configurationLoader->load();
-
-        foreach ($configuration->getRepositories() as $repositoryName => $repository) {
-            $this->splitAsProcess($repositoryName, $branch);
-        }
-
-        return $this;
-    }
-
-    /**
      * @param string $repositoryName
      * @param string $branch
      *
-     * @return \Dandelion\Operation\SplitterInterface
+     * @return string[]
      */
-    protected function splitAsProcess(
-        string $repositoryName,
-        string $branch
-    ): SplitterInterface {
-        $command = $command = [
+    protected function getCommand(string $repositoryName, string $branch): array
+    {
+        return [
             sprintf('%sdandelion', $this->binDir),
             SplitCommand::NAME,
             $repositoryName,
             $branch
         ];
-
-        $process = $this->processFactory->create($command);
-
-        $process->start();
-
-        return $this;
     }
 }

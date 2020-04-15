@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Dandelion\Console\Command;
 
-use Dandelion\Operation\ReleaserInterface;
+use Dandelion\Operation\AbstractOperation;
+use Dandelion\Operation\Result\MessageInterface;
 use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -12,6 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function is_string;
+use function sprintf;
 
 class ReleaseAllCommand extends Command
 {
@@ -19,15 +21,15 @@ class ReleaseAllCommand extends Command
     public const DESCRIPTION = 'Releases all packages.';
 
     /**
-     * @var \Dandelion\Operation\ReleaserInterface
+     * @var \Dandelion\Operation\AbstractOperation
      */
     protected $releaser;
 
     /**
-     * @param \Dandelion\Operation\ReleaserInterface $releaser
+     * @param \Dandelion\Operation\AbstractOperation $releaser
      */
     public function __construct(
-        ReleaserInterface $releaser
+        AbstractOperation $releaser
     ) {
         parent::__construct();
         $this->releaser = $releaser;
@@ -60,7 +62,18 @@ class ReleaseAllCommand extends Command
             throw new InvalidArgumentException('Unsupported type for given argument');
         }
 
-        $this->releaser->releaseAll($branch);
+        $output->writeln('Releasing monorepo packages:');
+        $output->writeln('---------------------------------');
+
+        $result = $this->releaser->executeForAllRepositories($branch);
+
+        foreach ($result->getMessages() as $message) {
+            $symbol = $message->getType() === MessageInterface::TYPE_INFO ? '<fg=green>✔</>' : '<fg=red>✗</>';
+            $output->writeln(sprintf('%s %s', $symbol, $message->getText()));
+        }
+
+        $output->writeln('---------------------------------');
+        $output->writeln('Finished');
 
         return 0;
     }

@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Dandelion\Console\Command;
 
 use Codeception\Test\Unit;
 use Dandelion\Configuration\ConfigurationValidatorInterface;
 use Dandelion\Exception\ConfigurationNotValidException;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -49,7 +52,9 @@ class ValidateCommandTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->validateCommand = new ValidateCommand($this->configurationValidatorMock);
+        $this->validateCommand = new ValidateCommand(
+            $this->configurationValidatorMock
+        );
     }
 
     /**
@@ -80,7 +85,7 @@ class ValidateCommandTest extends Unit
 
         $this->outputMock->expects($this->atLeastOnce())
             ->method('writeln')
-            ->with(sprintf('<info>%s</info>', 'Configuration is valid.'));
+            ->with('Configuration is valid.');
 
         $this->assertEquals(0, $this->validateCommand->run($this->inputMock, $this->outputMock));
     }
@@ -98,7 +103,7 @@ class ValidateCommandTest extends Unit
 
         $this->outputMock->expects($this->atLeastOnce())
             ->method('writeln')
-            ->with(sprintf('<error>%s</error>', '...'));
+            ->withConsecutive(['Configuration is invalid.'], ['<fg=red>...</>']);
 
         $this->assertEquals(1, $this->validateCommand->run($this->inputMock, $this->outputMock));
     }

@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Dandelion\Console\Command;
 
 use Dandelion\Configuration\ConfigurationValidatorInterface;
-use Dandelion\Exception\ConfigurationNotValidException;
+use Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -14,13 +16,18 @@ class ValidateCommand extends Command
 {
     public const NAME = 'validate';
     public const DESCRIPTION = 'Validates dandelion.json.';
+
     /**
      * @var \Dandelion\Configuration\ConfigurationValidatorInterface
      */
     protected $configurationValidator;
 
-    public function __construct(ConfigurationValidatorInterface $configurationValidator)
-    {
+    /**
+     * @param \Dandelion\Configuration\ConfigurationValidatorInterface $configurationValidator
+     */
+    public function __construct(
+        ConfigurationValidatorInterface $configurationValidator
+    ) {
         parent::__construct();
         $this->configurationValidator = $configurationValidator;
     }
@@ -47,13 +54,13 @@ class ValidateCommand extends Command
     {
         try {
             $this->configurationValidator->validate();
-        } catch (ConfigurationNotValidException $e) {
-            $output->writeln(sprintf('<error>%s</error>', $e->getMessage()));
+        } catch (Exception $e) {
+            $output->writeln('Configuration is invalid.');
+            $output->writeln(sprintf('<fg=red>%s</>', $e->getMessage()));
             return 1;
         }
 
-        $output->writeln(sprintf('<info>%s</info>', 'Configuration is valid.'));
-
+        $output->writeln('Configuration is valid.');
         return 0;
     }
 }

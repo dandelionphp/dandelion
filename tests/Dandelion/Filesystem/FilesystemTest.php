@@ -7,7 +7,7 @@ namespace Dandelion\Filesystem;
 use Codeception\Test\Unit;
 use Exception;
 use org\bovigo\vfs\vfsStream;
-use function chdir;
+
 use function getcwd;
 use function rtrim;
 
@@ -115,7 +115,7 @@ class FilesystemTest extends Unit
             ->url();
 
         $this->assertEquals($this->filesystem, $this->filesystem->removeFile($url));
-        $this->assertFileNotExists($url);
+        $this->assertFileDoesNotExist($url);
     }
 
     /**
@@ -166,7 +166,7 @@ class FilesystemTest extends Unit
             ->url();
 
         $this->assertEquals($this->filesystem, $this->filesystem->removeDirectory($url));
-        $this->assertDirectoryNotExists($url);
+        $this->assertDirectoryDoesNotExist($url);
     }
 
     /**
@@ -228,7 +228,7 @@ class FilesystemTest extends Unit
         $url = $root->getChild('dir')->url();
 
         $this->assertEquals($this->filesystem, $this->filesystem->removeDirectory($url));
-        $this->assertDirectoryNotExists($url);
+        $this->assertDirectoryDoesNotExist($url);
     }
 
     /**

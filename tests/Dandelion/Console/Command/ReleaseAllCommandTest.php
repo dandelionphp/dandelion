@@ -1,9 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Dandelion\Console\Command;
 
 use Codeception\Test\Unit;
-use Dandelion\Operation\ReleaserInterface;
+use Dandelion\Operation\AbstractOperation;
+use Dandelion\Operation\Result\MessageInterface;
+use Dandelion\Operation\ResultInterface;
 use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -21,7 +25,17 @@ class ReleaseAllCommandTest extends Unit
     protected $outputMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\ReleaserInterface
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\ResultInterface
+     */
+    protected $resultMock;
+
+    /**
+     * @var \PHPUnit\Framework\MockObject\MockObject[]|\Dandelion\Operation\Result\MessageInterface[]
+     */
+    protected $messageMocks;
+
+    /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\AbstractOperation
      */
     protected $releaserMock;
 
@@ -45,7 +59,17 @@ class ReleaseAllCommandTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->releaserMock = $this->getMockBuilder(ReleaserInterface::class)
+        $this->resultMock = $this->getMockBuilder(ResultInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->messageMocks = [
+            $this->getMockBuilder(MessageInterface::class)
+                ->disableOriginalConstructor()
+                ->getMock()
+        ];
+
+        $this->releaserMock = $this->getMockBuilder(AbstractOperation::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -76,6 +100,7 @@ class ReleaseAllCommandTest extends Unit
     public function testRun(): void
     {
         $branch = 'master';
+        $messageText = 'Lorem ipsum';
 
         $this->inputMock->expects($this->atLeastOnce())
             ->method('getArgument')
@@ -83,8 +108,31 @@ class ReleaseAllCommandTest extends Unit
             ->willReturn($branch);
 
         $this->releaserMock->expects($this->atLeastOnce())
-            ->method('releaseAll')
-            ->with($branch);
+            ->method('executeForAllRepositories')
+            ->with($branch)
+            ->willReturn($this->resultMock);
+
+        $this->resultMock->expects($this->atLeastOnce())
+            ->method('getMessages')
+            ->willReturn($this->messageMocks);
+
+        $this->messageMocks[0]->expects($this->atLeastOnce())
+            ->method('getType')
+            ->willReturn(MessageInterface::TYPE_INFO);
+
+        $this->messageMocks[0]->expects($this->atLeastOnce())
+            ->method('getText')
+            ->willReturn($messageText);
+
+        $this->outputMock->expects($this->atLeastOnce())
+            ->method('writeln')
+            ->withConsecutive(
+                ['Releasing monorepo packages:'],
+                ['---------------------------------'],
+                [sprintf('<fg=green>✔</> %s', $messageText)],
+                ['---------------------------------'],
+                ['Finished']
+            );
 
         $this->assertEquals(0, $this->releaseAllCommand->run($this->inputMock, $this->outputMock));
     }
@@ -102,7 +150,7 @@ class ReleaseAllCommandTest extends Unit
             ->willReturn($branch);
 
         $this->releaserMock->expects($this->never())
-            ->method('releaseAll');
+            ->method('executeForAllRepositories');
 
         try {
             $this->releaseAllCommand->run($this->inputMock, $this->outputMock);

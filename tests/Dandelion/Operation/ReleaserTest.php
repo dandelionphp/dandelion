@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Dandelion\Operation;
 
 use ArrayObject;
@@ -9,7 +11,10 @@ use Dandelion\Configuration\ConfigurationLoaderInterface;
 use Dandelion\Configuration\Repository;
 use Dandelion\Console\Command\ReleaseCommand;
 use Dandelion\Filesystem\FilesystemInterface;
+use Dandelion\Operation\Result\MessageFactoryInterface;
 use Dandelion\Process\ProcessFactory;
+use Dandelion\Process\ProcessPoolFactoryInterface;
+use Dandelion\Process\ProcessPoolInterface;
 use Dandelion\VersionControl\GitInterface;
 use Exception;
 use Iterator;
@@ -53,21 +58,37 @@ class ReleaserTest extends Unit
     protected $filesystemMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Process\ProcessFactory
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Process\ProcessPoolFactoryInterface
      */
-    protected $processFactoryMock;
+    protected $processPoolFactoryMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Symfony\Component\Process\Process
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Process\ProcessPoolInterface
      */
-    protected $processMock;
+    protected $processPoolMock;
+
+    /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\ResultFactoryInterface
+     */
+    protected $resultFactoryMock;
+
+    /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\ResultInterface
+     */
+    protected $resultMock;
+
+    /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\Result\MessageFactoryInterface
+     */
+    protected $messageFactoryMock;
 
     /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\VersionControl\GitInterface
      */
     protected $gitMock;
+
     /**
-     * @var \Dandelion\Operation\ReleaserInterface
+     * @var \Dandelion\Operation\AbstractOperation
      */
     protected $releaser;
 
@@ -104,11 +125,23 @@ class ReleaserTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->processFactoryMock = $this->getMockBuilder(ProcessFactory::class)
+        $this->processPoolFactoryMock = $this->getMockBuilder(ProcessPoolFactoryInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->processMock = $this->getMockBuilder(Process::class)
+        $this->processPoolMock = $this->getMockBuilder(ProcessPoolInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->resultFactoryMock = $this->getMockBuilder(ResultFactoryInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->resultMock = $this->getMockBuilder(ResultInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->messageFactoryMock = $this->getMockBuilder(MessageFactoryInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -119,7 +152,9 @@ class ReleaserTest extends Unit
         $this->releaser = new Releaser(
             $this->configurationLoaderMock,
             $this->filesystemMock,
-            $this->processFactoryMock,
+            $this->processPoolFactoryMock,
+            $this->resultFactoryMock,
+            $this->messageFactoryMock,
             $this->gitMock,
             $this->pathToBinDirectory
         );
@@ -128,7 +163,7 @@ class ReleaserTest extends Unit
     /**
      * @return void
      */
-    public function testRelease(): void
+    public function testExecuteForSingleRepository(): void
     {
         $repositoryName = 'package';
         $repositoryUrl = 'git@github.com:user/package.git';
@@ -216,14 +251,14 @@ class ReleaserTest extends Unit
 
         $this->assertEquals(
             $this->releaser,
-            $this->releaser->release($repositoryName, $branch)
+            $this->releaser->executeForSingleRepository($repositoryName, $branch)
         );
     }
 
     /**
      * @return void
      */
-    public function testReleaseWithNonExistingRepository(): void
+    public function testExecuteForSingleRepositoryWithNonExistingRepository(): void
     {
         $repositoryName = 'package';
         $branch = 'master';
@@ -273,7 +308,7 @@ class ReleaserTest extends Unit
             ->method('pushWithTags');
 
         try {
-            $this->releaser->release($repositoryName, $branch);
+            $this->releaser->executeForSingleRepository($repositoryName, $branch);
         } catch (Exception $e) {
             return;
         }
@@ -284,7 +319,7 @@ class ReleaserTest extends Unit
     /**
      * @return void
      */
-    public function testReleaseWithExistingVersion(): void
+    public function testExecuteForSingleRepositoryWithExistingVersion(): void
     {
         $repositoryName = 'package';
         $repositoryUrl = 'git@github.com:user/package.git';
@@ -361,7 +396,7 @@ class ReleaserTest extends Unit
 
         $this->assertEquals(
             $this->releaser,
-            $this->releaser->release($repositoryName, $branch)
+            $this->releaser->executeForSingleRepository($repositoryName, $branch)
         );
     }
 
@@ -369,7 +404,7 @@ class ReleaserTest extends Unit
     /**
      * @return void
      */
-    public function testReleaseAll(): void
+    public function testExecuteForAllRepositories(): void
     {
         $repositoryName = 'package';
         $branch = 'master';
@@ -377,6 +412,14 @@ class ReleaserTest extends Unit
         $this->configurationLoaderMock->expects($this->atLeastOnce())
             ->method('load')
             ->willReturn($this->configurationMock);
+
+        $this->processPoolFactoryMock->expects($this->atLeastOnce())
+            ->method('create')
+            ->willReturn($this->processPoolMock);
+
+        $this->resultFactoryMock->expects($this->atLeastOnce())
+            ->method('create')
+            ->willReturn($this->resultMock);
 
         $this->configurationMock->expects($this->atLeastOnce())
             ->method('getRepositories')
@@ -401,21 +444,22 @@ class ReleaserTest extends Unit
             ->method('key')
             ->willReturn($repositoryName);
 
-        $this->processFactoryMock->expects($this->atLeastOnce())
-            ->method('create')
+        $this->processPoolMock->expects($this->atLeastOnce())
+            ->method('addProcess')
             ->with([
                 sprintf('%sdandelion', $this->pathToBinDirectory),
                 ReleaseCommand::NAME,
                 $repositoryName,
                 $branch
-            ])->willReturn($this->processMock);
+            ])->willReturn($this->processPoolMock);
 
-        $this->processMock->expects($this->atLeastOnce())
-            ->method('start');
+        $this->processPoolMock->expects($this->atLeastOnce())
+            ->method('start')
+            ->willReturn($this->processPoolMock);
 
         $this->assertEquals(
-            $this->releaser,
-            $this->releaser->releaseAll($branch)
+            $this->resultMock,
+            $this->releaser->executeForAllRepositories($branch)
         );
     }
 }

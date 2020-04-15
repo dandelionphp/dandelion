@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Dandelion\Console\Command;
 
 use Codeception\Test\Unit;
-use Dandelion\Operation\ReleaserInterface;
+use Dandelion\Operation\AbstractOperation;
 use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -21,7 +23,7 @@ class ReleaseCommandTest extends Unit
     protected $outputMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\ReleaserInterface
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\AbstractOperation
      */
     protected $releaserMock;
 
@@ -45,7 +47,7 @@ class ReleaseCommandTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->releaserMock = $this->getMockBuilder(ReleaserInterface::class)
+        $this->releaserMock = $this->getMockBuilder(AbstractOperation::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -87,7 +89,7 @@ class ReleaseCommandTest extends Unit
             );
 
         $this->releaserMock->expects($this->atLeastOnce())
-            ->method('release')
+            ->method('executeForSingleRepository')
             ->with($repositoryName, $branch);
 
         $this->assertEquals(0, $this->releaseCommand->run($this->inputMock, $this->outputMock));
@@ -110,7 +112,7 @@ class ReleaseCommandTest extends Unit
             );
 
         $this->releaserMock->expects($this->never())
-            ->method('release');
+            ->method('executeForSingleRepository');
 
         try {
             $this->releaseCommand->run($this->inputMock, $this->outputMock);

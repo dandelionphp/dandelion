@@ -15,8 +15,11 @@ use Dandelion\Console\Command\ValidateCommand;
 use Dandelion\Environment\OperatingSystem;
 use Dandelion\Filesystem\Filesystem;
 use Dandelion\Operation\Releaser;
+use Dandelion\Operation\Result\MessageFactory;
+use Dandelion\Operation\ResultFactory;
 use Dandelion\Operation\Splitter;
 use Dandelion\Process\ProcessFactory;
+use Dandelion\Process\ProcessPoolFactory;
 use Dandelion\VersionControl\Git;
 use Dandelion\VersionControl\SplitshLite;
 use Pimple\Container;
@@ -47,13 +50,15 @@ class DandelionServiceProvider implements ServiceProviderInterface
         $container = $this->registerConfigurationLoader($container);
         $container = $this->registerConfigurationFinder($container);
         $container = $this->registerProcessFactory($container);
+        $container = $this->registerProcessPoolFactory($container);
+        $container = $this->registerResultFactory($container);
+        $container = $this->registerMessageFactory($container);
         $container = $this->registerOperatingSystem($container);
         $container = $this->registerGit($container);
         $container = $this->registerSplitshLite($container);
         $container = $this->registerSplitter($container);
         $container = $this->registerReleaser($container);
         $container = $this->registerConfigurationValidator($container);
-
         $this->registerCommands($container);
     }
 
@@ -138,7 +143,9 @@ class DandelionServiceProvider implements ServiceProviderInterface
         $container->offsetSet('splitter', static function (Container $container) {
             return new Splitter(
                 $container->offsetGet('configuration_loader'),
-                $container->offsetGet('process_factory'),
+                $container->offsetGet('process_pool_factory'),
+                $container->offsetGet('result_factory'),
+                $container->offsetGet('message_factory'),
                 $container->offsetGet('git'),
                 $container->offsetGet('splitsh_lite'),
                 $container->offsetGet('bin_dir')
@@ -171,6 +178,50 @@ class DandelionServiceProvider implements ServiceProviderInterface
     {
         $container->offsetSet('process_factory', static function () {
             return new ProcessFactory();
+        });
+
+        return $container;
+    }
+
+    /**
+     * @param \Pimple\Container $container
+     *
+     * @return \Pimple\Container
+     */
+    protected function registerProcessPoolFactory(Container $container): Container
+    {
+        $container->offsetSet('process_pool_factory', static function (Container $container) {
+            return new ProcessPoolFactory(
+                $container->offsetGet('process_factory')
+            );
+        });
+
+        return $container;
+    }
+
+    /**
+     * @param \Pimple\Container $container
+     *
+     * @return \Pimple\Container
+     */
+    protected function registerResultFactory(Container $container): Container
+    {
+        $container->offsetSet('result_factory', static function () {
+            return new ResultFactory();
+        });
+
+        return $container;
+    }
+
+    /**
+     * @param \Pimple\Container $container
+     *
+     * @return \Pimple\Container
+     */
+    protected function registerMessageFactory(Container $container): Container
+    {
+        $container->offsetSet('message_factory', static function () {
+            return new MessageFactory();
         });
 
         return $container;
@@ -323,7 +374,9 @@ class DandelionServiceProvider implements ServiceProviderInterface
             return new Releaser(
                 $container->offsetGet('configuration_loader'),
                 $container->offsetGet('filesystem'),
-                $container->offsetGet('process_factory'),
+                $container->offsetGet('process_pool_factory'),
+                $container->offsetGet('result_factory'),
+                $container->offsetGet('message_factory'),
                 $container->offsetGet('git'),
                 $container->offsetGet('bin_dir')
             );
@@ -352,8 +405,15 @@ class DandelionServiceProvider implements ServiceProviderInterface
         return new ReleaseAllCommand($container->offsetGet('releaser'));
     }
 
+    /**
+     * @param \Pimple\Container $container
+     *
+     * @return \Dandelion\Console\Command\ValidateCommand
+     */
     protected function createValidateCommand(Container $container): ValidateCommand
     {
-        return new ValidateCommand($container->offsetGet('configuration_validator'));
+        return new ValidateCommand(
+            $container->offsetGet('configuration_validator')
+        );
     }
 }
