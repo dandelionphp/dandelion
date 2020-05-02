@@ -207,7 +207,7 @@ class Git implements GitInterface
         $process = $this->processFactory->create($command);
 
         $process->run();
-
+        var_dump(implode(" ", $command));
         if (!$process->isSuccessful()) {
             throw new RuntimeException($process->getExitCodeText(), $process->getExitCode());
         }
@@ -250,9 +250,9 @@ class Git implements GitInterface
     {
         $command = [
             'git',
-            'remote',
-            'show',
-            $remote
+            'config',
+            '--get',
+            sprintf('remote.%s.url', $remote)
         ];
 
         try {
