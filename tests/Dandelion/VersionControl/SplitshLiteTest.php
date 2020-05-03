@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Dandelion\VersionControl;
 
 use Codeception\Test\Unit;
+use Dandelion\Configuration\Configuration;
+use Dandelion\Configuration\ConfigurationLoaderInterface;
 use Dandelion\Environment\OperatingSystem;
 use Dandelion\Environment\OperatingSystemInterface;
 use Dandelion\Process\ProcessFactory;
@@ -18,16 +20,6 @@ use function strtolower;
 class SplitshLiteTest extends Unit
 {
     /**
-     * @var string
-     */
-    protected $pathToBinDirectory;
-
-    /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Environment\OperatingSystemInterface
-     */
-    protected $operatingSystemMock;
-
-    /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Process\ProcessFactory
      */
     protected $processFactoryMock;
@@ -36,6 +28,16 @@ class SplitshLiteTest extends Unit
      * @var \PHPUnit\Framework\MockObject\MockObject|\Symfony\Component\Process\Process
      */
     protected $processMock;
+
+    /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Configuration\ConfigurationLoaderInterface
+     */
+    protected $configurationLoaderMock;
+
+    /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Configuration\Configuration
+     */
+    protected $configurationMock;
 
     /**
      * @var \Dandelion\VersionControl\SplitshLiteInterface
@@ -49,12 +51,6 @@ class SplitshLiteTest extends Unit
     {
         parent::_before();
 
-        $this->pathToBinDirectory = '/path/To/Bin/Directory';
-
-        $this->operatingSystemMock = $this->getMockBuilder(OperatingSystemInterface::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
         $this->processFactoryMock = $this->getMockBuilder(ProcessFactory::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -63,10 +59,17 @@ class SplitshLiteTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
+        $this->configurationLoaderMock = $this->getMockBuilder(ConfigurationLoaderInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->configurationMock = $this->getMockBuilder(Configuration::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
         $this->splitshLite = new SplitshLite(
-            $this->operatingSystemMock,
             $this->processFactoryMock,
-            $this->pathToBinDirectory
+            $this->configurationLoaderMock
         );
     }
 
@@ -79,25 +82,20 @@ class SplitshLiteTest extends Unit
     {
         $expectedSha1 = sha1('Lorem ipsum');
         $pathToPackage = '/path/to/package';
-        $pathToSplitshLite = sprintf(
-            '%s%s-%s',
-            $this->pathToBinDirectory,
-            'splitsh-lite',
-            strtolower(OperatingSystem::FAMILY_DARWIN)
-        );
+        $pathToBinary = '/usr/bin/splitsh-lite';
 
-        $this->operatingSystemMock->expects($this->atLeastOnce())
-            ->method('getMachineType')
-            ->willReturn(OperatingSystem::MACHINE_TYPE_X86_64);
+        $this->configurationLoaderMock->expects($this->atLeastOnce())
+            ->method('load')
+            ->willReturn($this->configurationMock);
 
-        $this->operatingSystemMock->expects($this->atLeastOnce())
-            ->method('getFamily')
-            ->willReturn(OperatingSystem::FAMILY_DARWIN);
+        $this->configurationMock->expects($this->atLeastOnce())
+            ->method('getPathToSplitshLite')
+            ->willReturn($pathToBinary);
 
         $this->processFactoryMock->expects($this->atLeastOnce())
             ->method('create')
             ->with([
-                $pathToSplitshLite,
+                $pathToBinary,
                 sprintf('--prefix=%s', $pathToPackage),
                 '--quiet'
             ])->willReturn($this->processMock);
@@ -124,76 +122,42 @@ class SplitshLiteTest extends Unit
      *
      * @throws \Exception
      */
-    public function testGetSha1WithUnsupportedMachineType(): void
+    public function testGetSha1WithDefaultPathToBinary(): void
     {
+        $expectedSha1 = sha1('Lorem ipsum');
         $pathToPackage = '/path/to/package';
 
-        $this->operatingSystemMock->expects($this->atLeastOnce())
-            ->method('getMachineType')
-            ->willReturn('i386');
+        $this->configurationLoaderMock->expects($this->atLeastOnce())
+            ->method('load')
+            ->willReturn($this->configurationMock);
 
-        $this->operatingSystemMock->expects($this->never())
-            ->method('getFamily')
-            ->willReturn(OperatingSystem::FAMILY_DARWIN);
+        $this->configurationMock->expects($this->atLeastOnce())
+            ->method('getPathToSplitshLite')
+            ->willReturn(null);
 
-        $this->processFactoryMock->expects($this->never())
-            ->method('create');
+        $this->processFactoryMock->expects($this->atLeastOnce())
+            ->method('create')
+            ->with([
+                SplitshLite::DEFAULT_PATH_TO_BINARY,
+                sprintf('--prefix=%s', $pathToPackage),
+                '--quiet'
+            ])->willReturn($this->processMock);
 
-        $this->processMock->expects($this->never())
+        $this->processMock->expects($this->atLeastOnce())
             ->method('run');
 
-        $this->processMock->expects($this->never())
-            ->method('isSuccessful');
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('isSuccessful')
+            ->willReturn(true);
 
-        $this->processMock->expects($this->never())
-            ->method('getOutput');
+        $this->processMock->expects($this->atLeastOnce())
+            ->method('getOutput')
+            ->willReturn($expectedSha1);
 
-        try {
-            $this->splitshLite->getSha1($pathToPackage);
-        } catch (Exception $e) {
-            return;
-        }
-
-        $this->fail();
-    }
-
-    /**
-     * @return void
-     *
-     * @throws \Exception
-     */
-    public function testGetSha1WithUnsupportedOsFamily(): void
-    {
-
-        $pathToPackage = '/path/to/package';
-
-        $this->operatingSystemMock->expects($this->atLeastOnce())
-            ->method('getMachineType')
-            ->willReturn(OperatingSystem::MACHINE_TYPE_X86_64);
-
-        $this->operatingSystemMock->expects($this->atLeastOnce())
-            ->method('getFamily')
-            ->willReturn('Unknown');
-
-        $this->processFactoryMock->expects($this->never())
-            ->method('create');
-
-        $this->processMock->expects($this->never())
-            ->method('run');
-
-        $this->processMock->expects($this->never())
-            ->method('isSuccessful');
-
-        $this->processMock->expects($this->never())
-            ->method('getOutput');
-
-        try {
-            $this->splitshLite->getSha1($pathToPackage);
-        } catch (Exception $e) {
-            return;
-        }
-
-        $this->fail();
+        $this->assertEquals(
+            $expectedSha1,
+            $this->splitshLite->getSha1($pathToPackage)
+        );
     }
 
     /**
@@ -203,26 +167,21 @@ class SplitshLiteTest extends Unit
      */
     public function testGetSha1WithError(): void
     {
+        $expectedSha1 = sha1('Lorem ipsum');
         $pathToPackage = '/path/to/package';
-        $pathToSplitshLite = sprintf(
-            '%s%s-%s',
-            $this->pathToBinDirectory,
-            'splitsh-lite',
-            strtolower(OperatingSystem::FAMILY_DARWIN)
-        );
 
-        $this->operatingSystemMock->expects($this->atLeastOnce())
-            ->method('getMachineType')
-            ->willReturn(OperatingSystem::MACHINE_TYPE_X86_64);
+        $this->configurationLoaderMock->expects($this->atLeastOnce())
+            ->method('load')
+            ->willReturn($this->configurationMock);
 
-        $this->operatingSystemMock->expects($this->atLeastOnce())
-            ->method('getFamily')
-            ->willReturn(OperatingSystem::FAMILY_DARWIN);
+        $this->configurationMock->expects($this->atLeastOnce())
+            ->method('getPathToSplitshLite')
+            ->willReturn(null);
 
         $this->processFactoryMock->expects($this->atLeastOnce())
             ->method('create')
             ->with([
-                $pathToSplitshLite,
+                SplitshLite::DEFAULT_PATH_TO_BINARY,
                 sprintf('--prefix=%s', $pathToPackage),
                 '--quiet'
             ])->willReturn($this->processMock);

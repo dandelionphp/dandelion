@@ -14,6 +14,16 @@ use function is_object;
 class ConfigurationLoader implements ConfigurationLoaderInterface
 {
     /**
+     * @var \Dandelion\Configuration\Configuration|null
+     */
+    protected $configuration;
+
+    /**
+     * @var string|null
+     */
+    protected $rawConfiguration;
+
+    /**
      * @var \Dandelion\Configuration\ConfigurationFinderInterface
      */
     protected $configurationFinder;
@@ -51,6 +61,10 @@ class ConfigurationLoader implements ConfigurationLoaderInterface
      */
     public function load(): Configuration
     {
+        if ($this->configuration !== null) {
+            return $this->configuration;
+        }
+
         $configurationFileContent = $this->loadRaw();
 
         $configuration = $this->serializer->deserialize(
@@ -63,7 +77,9 @@ class ConfigurationLoader implements ConfigurationLoaderInterface
             throw new InvalidTypeException('Invalid type of deserialized data.');
         }
 
-        return $configuration;
+        $this->configuration = $configuration;
+
+        return $this->configuration;
     }
 
     /**
@@ -73,6 +89,10 @@ class ConfigurationLoader implements ConfigurationLoaderInterface
      */
     public function loadRaw(): string
     {
+        if ($this->rawConfiguration !== null) {
+            return $this->rawConfiguration;
+        }
+
         $configurationFile = $this->configurationFinder->find();
         $realPathToConfigurationFile = $configurationFile->getRealPath();
 
@@ -80,6 +100,8 @@ class ConfigurationLoader implements ConfigurationLoaderInterface
             throw new IOException('Configuration file does not exists.');
         }
 
-        return $this->filesystem->readFile($realPathToConfigurationFile);
+        $this->rawConfiguration = $this->filesystem->readFile($realPathToConfigurationFile);
+
+        return $this->rawConfiguration;
     }
 }

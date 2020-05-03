@@ -6,7 +6,8 @@
       "title": "Split-Repository",
       "required": [
         "url",
-        "path"
+        "path",
+        "version"
       ],
       "properties": {
         "url": {
@@ -63,12 +64,21 @@
       "$ref": "#repositories"
     },
     "pathToTempDirectory": {
-      "$id": "/properties/id",
+      "$id": "/properties/pathToTempDirectory",
       "type": "string",
       "title": "Path to temp directory",
       "default": "",
       "examples": [
         "/tmp/"
+      ]
+    },
+    "pathToSplitshLite": {
+      "$id": "/properties/pathToSplitshLite",
+      "type": "string",
+      "title": "Path to splitsh lite ",
+      "default": "",
+      "examples": [
+        "/usr/local/bin/splitsh-lite"
       ]
     }
   }

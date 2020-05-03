@@ -53,7 +53,6 @@ class DandelionServiceProvider implements ServiceProviderInterface
         $container = $this->registerProcessPoolFactory($container);
         $container = $this->registerResultFactory($container);
         $container = $this->registerMessageFactory($container);
-        $container = $this->registerOperatingSystem($container);
         $container = $this->registerGit($container);
         $container = $this->registerSplitshLite($container);
         $container = $this->registerSplitter($container);
@@ -236,24 +235,9 @@ class DandelionServiceProvider implements ServiceProviderInterface
     {
         $container->offsetSet('splitsh_lite', static function (Container $container) {
             return new SplitshLite(
-                $container->offsetGet('operating_system'),
                 $container->offsetGet('process_factory'),
-                $container->offsetGet('bin_dir')
+                $container->offsetGet('configuration_loader')
             );
-        });
-
-        return $container;
-    }
-
-    /**
-     * @param \Pimple\Container $container
-     *
-     * @return \Pimple\Container
-     */
-    protected function registerOperatingSystem(Container $container): Container
-    {
-        $container->offsetSet('operating_system', static function () {
-            return new OperatingSystem();
         });
 
         return $container;

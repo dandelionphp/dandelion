@@ -48,7 +48,8 @@ Download the latest release from the [Github](https://github.com/dandelionphp/da
             "version": "1.1.0"
         }
     },
-    "pathToTempDirectory": "tmp/"
+    "pathToTempDirectory": "/tmp/",
+    "pathToSplitshLite": "/usr/bin/splitsh-lite"
 }
 ```
 
