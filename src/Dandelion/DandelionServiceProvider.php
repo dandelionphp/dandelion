@@ -12,7 +12,6 @@ use Dandelion\Console\Command\ReleaseCommand;
 use Dandelion\Console\Command\SplitAllCommand;
 use Dandelion\Console\Command\SplitCommand;
 use Dandelion\Console\Command\ValidateCommand;
-use Dandelion\Environment\OperatingSystem;
 use Dandelion\Filesystem\Filesystem;
 use Dandelion\Operation\Releaser;
 use Dandelion\Operation\Result\MessageFactory;
