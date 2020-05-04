@@ -56,4 +56,23 @@ class ConfigurationTest extends Unit
         $this->assertEquals($this->configuration, $this->configuration->setPathToTempDirectory($pathToTempDirectory));
         $this->assertEquals($pathToTempDirectory, $this->configuration->getPathToTempDirectory());
     }
+
+    /**
+     * @return void
+     */
+    public function testGetPathToSplitshLite(): void
+    {
+        $this->assertEquals(null, $this->configuration->getPathToSplitshLite());
+    }
+
+    /**
+     * @return void
+     */
+    public function testSetAndGetPathToSplitshLite(): void
+    {
+        $pathToSplitshLite = '/usr/local/bin/splitsh-lite';
+
+        $this->assertEquals($this->configuration, $this->configuration->setPathToSplitshLite($pathToSplitshLite));
+        $this->assertEquals($pathToSplitshLite, $this->configuration->getPathToSplitshLite());
+    }
 }

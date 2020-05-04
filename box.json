@@ -6,8 +6,6 @@
     "with this source code in the file LICENSE."
   ],
   "files": [
-    "resources/dandelion.schema.json",
-    "bin/splitsh-lite-darwin",
-    "bin/splitsh-lite-linux"
+    "resources/dandelion.schema.json"
   ]
 }

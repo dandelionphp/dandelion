@@ -611,9 +611,9 @@ class GitTest extends Unit
             ->method('create')
             ->with([
                 'git',
-                'remote',
-                'show',
-                $remote
+                'config',
+                '--get',
+                sprintf('remote.%s.url', $remote)
             ])
             ->willReturn($this->processMock);
 
@@ -642,9 +642,9 @@ class GitTest extends Unit
             ->method('create')
             ->with([
                 'git',
-                'remote',
-                'show',
-                $remote
+                'config',
+                '--get',
+                sprintf('remote.%s.url', $remote)
             ])
             ->willReturn($this->processMock);
 

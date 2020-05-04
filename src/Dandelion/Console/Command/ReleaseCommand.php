@@ -45,7 +45,6 @@ class ReleaseCommand extends Command
 
         $this->addArgument('repositoryName', InputArgument::REQUIRED, 'Name of split repository');
         $this->addArgument('branch', InputArgument::REQUIRED, 'Branch');
-        $this->addArgument('version', InputArgument::REQUIRED, 'Version');
     }
 
     /**

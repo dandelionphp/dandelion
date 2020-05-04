@@ -23,7 +23,7 @@ Create a temp folder in your repository root where the split repositories will b
 
 ## Usage
 
-### Using Docker
+### Docker
 `docker run --rm -v $PWD:/home/dandelion dandelion:latest -c dandelion split:all master`  
 `docker run --rm -v $PWD:/home/dandelion dandelion:latest -c dandelion release:all master 1.0.0`   
 
@@ -32,16 +32,35 @@ If that is not a viable option for you but you still want to use Docker you migh
   
 In general this is only necessary for private repositories. If you use Dandelion in a public repository context you can use https.
 
-### Using PHAR
+### PHAR
 Download the latest release from the [Github](https://github.com/dandelionphp/dandelion/releases).
 
 `php dandelion.phar split:all master`  
 `php dandelion.phar release:all master`
 
-### Using composer
-composer global require dandelionphp/dandelion
-macOS: $HOME/.composer/vendor/bin
-GNU / Linux Distributions: $HOME/.config/composer/vendor/bin or $HOME/.composer/vendor/bin
+### composer
+#### Global Installation
+`composer global require dandelionphp/dandelion`
+
+Make sure to add composer to your PATH:  
+**macOS:** $HOME/.composer/vendor/bin
+**GNU / Linux Distributions:** $HOME/.config/composer/vendor/bin or $HOME/.composer/vendor/bin
+
+Run:  
+`dandelion split:all master`
+or  
+`dandelion release:all master 1.0.0`
+
+#### Local Installation
+`composer require-dev dandelionphp/dandelion`
+
+Run:
+`vendor/bin/dandelion split:all master`
+or
+`vendor/bin/dandelion release:all master 1.0.0`
+
+### Help command
+`dandelion -h`
 
 ## Example Config
 ```json
@@ -58,7 +77,8 @@ GNU / Linux Distributions: $HOME/.config/composer/vendor/bin or $HOME/.composer/
       "version": "1.0.0"
     }
   },
-  "pathToTempDirectory": "tmp/"
+  "pathToTempDirectory": "/tmp/",
+  "pathToSplitshLite": "/usr/bin/splitsh-lite"
 }
 ```
 _Note: It is important to use trailing slashes on path references_
