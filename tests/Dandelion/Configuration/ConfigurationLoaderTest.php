@@ -7,8 +7,11 @@ namespace Dandelion\Configuration;
 use Codeception\Test\Unit;
 use Dandelion\Filesystem\FilesystemInterface;
 use Exception;
+use ReflectionProperty;
 use SplFileInfo;
 use Symfony\Component\Serializer\SerializerInterface;
+
+use function get_class;
 
 class ConfigurationLoaderTest extends Unit
 {
@@ -104,6 +107,37 @@ class ConfigurationLoaderTest extends Unit
      *
      * @throws \Exception
      */
+    public function testLoadAfterFirstCall(): void
+    {
+        $configurationMock = $this->getMockBuilder(Configuration::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $configurationProperty = new ReflectionProperty(get_class($this->configurationLoader), 'configuration');
+        $configurationProperty->setAccessible(true);
+        $configurationProperty->setValue($this->configurationLoader, $configurationMock);
+
+        $this->configurationFinderMock->expects($this->never())
+            ->method('find')
+            ->willReturn($this->splFileInfoMock);
+
+        $this->splFileInfoMock->expects($this->never())
+            ->method('getRealPath');
+
+        $this->filesystemMock->expects($this->never())
+            ->method('readFile');
+
+        $this->symfonySerializerMock->expects($this->never())
+            ->method('deserialize');
+
+        $this->assertEquals($configurationMock, $this->configurationLoader->load());
+    }
+
+    /**
+     * @return void
+     *
+     * @throws \Exception
+     */
     public function testLoadWithUnsupportedConfigurationFile(): void
     {
         $configurationFileContent = '[...]';
@@ -160,6 +194,31 @@ class ConfigurationLoaderTest extends Unit
             ->willReturn($configurationFileContent);
 
         $this->assertEquals($configurationFileContent, $this->configurationLoader->loadRaw());
+    }
+
+    /**
+     * @return void
+     *
+     * @throws \Exception
+     */
+    public function testLoadRawAfterFirstCall(): void
+    {
+        $rawConfiguration = '{...}';
+
+        $rawConfigurationProperty = new ReflectionProperty(get_class($this->configurationLoader), 'rawConfiguration');
+        $rawConfigurationProperty->setAccessible(true);
+        $rawConfigurationProperty->setValue($this->configurationLoader, $rawConfiguration);
+
+        $this->configurationFinderMock->expects($this->never())
+            ->method('find');
+
+        $this->splFileInfoMock->expects($this->never())
+            ->method('getRealPath');
+
+        $this->filesystemMock->expects($this->never())
+            ->method('readFile');
+
+        $this->assertEquals($rawConfiguration, $this->configurationLoader->loadRaw());
     }
 
     /**

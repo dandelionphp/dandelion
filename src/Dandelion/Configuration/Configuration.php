@@ -19,6 +19,11 @@ class Configuration
     protected $pathToTempDirectory;
 
     /**
+     * @var string|null
+     */
+    protected $pathToSplitshLite;
+
+    /**
      * @return \ArrayObject<string,\Dandelion\Configuration\Repository>
      */
     public function getRepositories(): ArrayObject
@@ -54,6 +59,26 @@ class Configuration
     public function setPathToTempDirectory(string $pathToTempDirectory): Configuration
     {
         $this->pathToTempDirectory = $pathToTempDirectory;
+
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getPathToSplitshLite(): ?string
+    {
+        return $this->pathToSplitshLite;
+    }
+
+    /**
+     * @param string|null $pathToSplitshLite
+     *
+     * @return \Dandelion\Configuration\Configuration
+     */
+    public function setPathToSplitshLite(?string $pathToSplitshLite): Configuration
+    {
+        $this->pathToSplitshLite = $pathToSplitshLite;
 
         return $this;
     }

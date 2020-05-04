@@ -4,22 +4,15 @@ declare(strict_types=1);
 
 namespace Dandelion\VersionControl;
 
-use Dandelion\Environment\OperatingSystem;
-use Dandelion\Environment\OperatingSystemInterface;
+use Dandelion\Configuration\ConfigurationLoaderInterface;
 use Dandelion\Exception\RuntimeException;
 use Dandelion\Process\ProcessFactory;
 
 use function sprintf;
-use function strtolower;
 
 class SplitshLite implements SplitshLiteInterface
 {
-    protected const BINARY_NAME_SPLITSH_LITE = 'splitsh-lite';
-
-    /**
-     * @var \Dandelion\Environment\OperatingSystemInterface
-     */
-    protected $operatingSystem;
+    public const DEFAULT_PATH_TO_BINARY = '/usr/local/bin/splitsh-lite';
 
     /**
      * @var \Dandelion\Process\ProcessFactory
@@ -27,23 +20,20 @@ class SplitshLite implements SplitshLiteInterface
     protected $processFactory;
 
     /**
-     * @var string
+     * @var \Dandelion\Configuration\ConfigurationLoaderInterface
      */
-    protected $pathToBinDirectory;
+    protected $configurationLoader;
 
     /**
-     * @param \Dandelion\Environment\OperatingSystemInterface $operatingSystem
      * @param \Dandelion\Process\ProcessFactory $processFactory
-     * @param string $pathToBinDirectory
+     * @param \Dandelion\Configuration\ConfigurationLoaderInterface $configurationLoader
      */
     public function __construct(
-        OperatingSystemInterface $operatingSystem,
         ProcessFactory $processFactory,
-        string $pathToBinDirectory
+        ConfigurationLoaderInterface $configurationLoader
     ) {
         $this->processFactory = $processFactory;
-        $this->pathToBinDirectory = $pathToBinDirectory;
-        $this->operatingSystem = $operatingSystem;
+        $this->configurationLoader = $configurationLoader;
     }
 
     /**
@@ -56,7 +46,7 @@ class SplitshLite implements SplitshLiteInterface
     public function getSha1(string $pathToPackage): string
     {
         $command = [
-            $this->getPathToSplitshLiteBin(),
+            $this->getPathToBinary(),
             sprintf('--prefix=%s', $pathToPackage),
             '--quiet'
         ];
@@ -77,25 +67,10 @@ class SplitshLite implements SplitshLiteInterface
      *
      * @throws \Exception
      */
-    protected function getPathToSplitshLiteBin(): string
+    protected function getPathToBinary(): string
     {
-        $machineType = $this->operatingSystem->getMachineType();
+        $configuration = $this->configurationLoader->load();
 
-        if ($machineType !== OperatingSystem::MACHINE_TYPE_X86_64) {
-            throw new RuntimeException(sprintf('Machine type "%s" is not supported', $machineType));
-        }
-
-        $osFamily = $this->operatingSystem->getFamily();
-
-        if ($osFamily !== OperatingSystem::FAMILY_DARWIN && $osFamily !== OperatingSystem::FAMILY_LINUX) {
-            throw new RuntimeException(sprintf('OS family "%s" is not supported', $osFamily));
-        }
-
-        return sprintf(
-            '%s%s-%s',
-            $this->pathToBinDirectory,
-            static::BINARY_NAME_SPLITSH_LITE,
-            strtolower($osFamily)
-        );
+        return $configuration->getPathToSplitshLite() ?? static::DEFAULT_PATH_TO_BINARY;
     }
 }
