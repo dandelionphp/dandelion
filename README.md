@@ -19,13 +19,18 @@ Example structure:
 Next you want to create read-only repositories for your packages in order to split and release into those repositories.
 The read-only repositories will be the one you link to in your dandelion configuration file.
   
-Create a temp folder in your repository root where the splitted repositories will be located. You can set this directory to any path you like in the configuration file. 
+Create a temp folder in your repository root where the split repositories will be located. You can set this directory to any path you like in the configuration file. 
 
 ## Usage
 
-### Preferred usage Docker
-`docker run -v $PWD:/home/dandelion -c "dandelion split:all master"`  
-`docker run -v $PWD:/home/dandelion -c "dandelion release:all master 1.0.0"`
+### Using Docker
+`docker run --rm -v $PWD:/home/dandelion dandelion:latest -c dandelion split:all master`  
+`docker run --rm -v $PWD:/home/dandelion dandelion:latest -c dandelion release:all master 1.0.0`   
+
+When you choose Docker as preferred way, you will need to use a Git authentication flow that runs without user interaction. 
+If that is not a viable option for you but you still want to use Docker you might configure your own Docker image using a keypair authentication flow.  
+  
+In general this is only necessary for private repositories. If you use Dandelion in a public repository context you can use https.
 
 ### Using PHAR
 Download the latest release from the [Github](https://github.com/dandelionphp/dandelion/releases).
@@ -33,23 +38,35 @@ Download the latest release from the [Github](https://github.com/dandelionphp/da
 `php dandelion.phar split:all master`  
 `php dandelion.phar release:all master`
 
+### Using composer
+composer global require dandelionphp/dandelion
+macOS: $HOME/.composer/vendor/bin
+GNU / Linux Distributions: $HOME/.config/composer/vendor/bin or $HOME/.composer/vendor/bin
+
 ## Example Config
 ```json
 {
-    "repositories": {
-        "dandelion-example-1": {
-            "url": "https://<GITHUB_USERNAME>:<GITHUB_TOKEN>@github.com:dandelionphp/dandelion-example-1.git",
-            "path": "example-1/",
-            "version": "1.0.0"
-        },
-        "dandelion-example-2": {
-            "url": "https://<GITHUB_USERNAME>:<GITHUB_TOKEN>@github.com:dandelionphp/dandelion-example-2.git",
-            "path": "example-2/",
-            "version": "1.1.0"
-        }
+  "repositories": {
+    "dandelion-example-1": {
+      "url": "https://<GITHUB_TOKEN>@github.com/<OWNER>/<REPO>.git",
+      "path": "example-1",
+      "version": "1.1.0"
     },
-    "pathToTempDirectory": "tmp/"
+    "dandelion-example-2": {
+      "url": "https://<GITHUB_TOKEN>@github.com/<OWNER>/<REPO>.git",
+      "path": "example-2",
+      "version": "1.0.0"
+    }
+  },
+  "pathToTempDirectory": "tmp/"
 }
 ```
-
 _Note: It is important to use trailing slashes on path references_
+
+### Git Authentication
+#### Github
+If you choose to use the token based authentication, keep in mind that your token will be visible in plain text in your dandelion config as well as 
+in `.git/config`. You'll find more information about that auth style [here](https://github.blog/2012-09-21-easier-builds-and-deployments-using-git-over-https-and-oauth/).
+Go to your [Github](https://github.com/settings/tokens) settings and create a personal access token. The scope for the access token is `repo`.
+
+#### Gitlab
