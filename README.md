@@ -25,7 +25,7 @@ Create a temp folder in your repository root where the split repositories will b
 
 ### Docker
 `docker run --rm -v $PWD:/home/dandelion dandelion:latest -c dandelion split:all master`  
-`docker run --rm -v $PWD:/home/dandelion dandelion:latest -c dandelion release:all master 1.0.0`   
+`docker run --rm -v $PWD:/home/dandelion dandelion:latest -c dandelion release:all master`   
 
 When you choose Docker as preferred way, you will need to use a Git authentication flow that runs without user interaction. 
 If that is not a viable option for you but you still want to use Docker you might configure your own Docker image using a keypair authentication flow.  
@@ -49,7 +49,7 @@ Make sure to add composer to your PATH:
 Run:  
 `dandelion split:all master`
 or  
-`dandelion release:all master 1.0.0`
+`dandelion release:all master`
 
 #### Local Installation
 `composer require-dev dandelionphp/dandelion`
@@ -57,10 +57,10 @@ or
 Run:
 `vendor/bin/dandelion split:all master`
 or
-`vendor/bin/dandelion release:all master 1.0.0`
+`vendor/bin/dandelion release:all master`
 
-### Help command
-`dandelion -h`
+### List all available commands
+`dandelion list`
 
 ## Example Config
 ```json
