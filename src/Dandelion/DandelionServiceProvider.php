@@ -7,12 +7,14 @@ namespace Dandelion;
 use Dandelion\Configuration\ConfigurationFinder;
 use Dandelion\Configuration\ConfigurationLoader;
 use Dandelion\Configuration\ConfigurationValidator;
+use Dandelion\Console\Command\InitializeCommand;
 use Dandelion\Console\Command\ReleaseAllCommand;
 use Dandelion\Console\Command\ReleaseCommand;
 use Dandelion\Console\Command\SplitAllCommand;
 use Dandelion\Console\Command\SplitCommand;
 use Dandelion\Console\Command\ValidateCommand;
 use Dandelion\Filesystem\Filesystem;
+use Dandelion\Operation\Initializer;
 use Dandelion\Operation\Releaser;
 use Dandelion\Operation\Result\MessageFactory;
 use Dandelion\Operation\ResultFactory;
@@ -57,6 +59,7 @@ class DandelionServiceProvider implements ServiceProviderInterface
         $container = $this->registerSplitter($container);
         $container = $this->registerReleaser($container);
         $container = $this->registerConfigurationValidator($container);
+        $container = $this->registerInitializer($container);
         $this->registerCommands($container);
     }
 
@@ -105,6 +108,7 @@ class DandelionServiceProvider implements ServiceProviderInterface
                 $self->createReleaseCommand($container),
                 $self->createReleaseAllCommand($container),
                 $self->createValidateCommand($container),
+                $self->createInitializeCommand($container),
             ];
         });
 
@@ -371,6 +375,25 @@ class DandelionServiceProvider implements ServiceProviderInterface
     /**
      * @param \Pimple\Container $container
      *
+     * @return \Pimple\Container
+     */
+    protected function registerInitializer(Container $container): Container
+    {
+        $container->offsetSet('initializer', static function (Container $container) {
+            return new Initializer(
+                $container->offsetGet('git'),
+                $container->offsetGet('configuration_loader'),
+                $container->offsetGet('message_factory'),
+                $container->offsetGet('result_factory'),
+            );
+        });
+
+        return $container;
+    }
+
+    /**
+     * @param \Pimple\Container $container
+     *
      * @return \Dandelion\Console\Command\ReleaseCommand
      */
     protected function createReleaseCommand(Container $container): ReleaseCommand
@@ -398,5 +421,10 @@ class DandelionServiceProvider implements ServiceProviderInterface
         return new ValidateCommand(
             $container->offsetGet('configuration_validator')
         );
+    }
+
+    protected function createInitializeCommand(Container $container): InitializeCommand
+    {
+        return new InitializeCommand($container->offsetGet('initializer'));
     }
 }

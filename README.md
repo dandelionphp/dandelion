@@ -22,10 +22,18 @@ The read-only repositories will be the one you link to in your dandelion configu
 Create a temp folder in your repository root where the split repositories will be located. You can set this directory to any path you like in the configuration file. 
 
 ## Usage
+The recommended way is to use docker. The docker image comes with a self-contained splitsh binary, you don't need to download or compile it yourself.
+If you choose one of the other options to run Dandelion, please have a look at the section "Install splitsh".
+  
+Choose your favorite method below.
+
+### Steps
+1. Run `dandelion init`, this will initialize your project and add all repository remotes.
+2. Run `dandelion split` to push your changes to remote branches.
+3. Run `dandelion release` to create a new release for your packages.
 
 ### Docker
-`docker run --rm -v $PWD:/home/dandelion dandelion:latest -c dandelion split:all master`  
-`docker run --rm -v $PWD:/home/dandelion dandelion:latest -c dandelion release:all master`   
+`docker run --rm -v $PWD:/home/dandelion dandelion:latest -c $COMMAND` 
 
 When you choose Docker as preferred way, you will need to use a Git authentication flow that runs without user interaction. 
 If that is not a viable option for you but you still want to use Docker you might configure your own Docker image using a keypair authentication flow.  
@@ -35,8 +43,7 @@ In general this is only necessary for private repositories. If you use Dandelion
 ### PHAR
 Download the latest release from the [Github](https://github.com/dandelionphp/dandelion/releases).
 
-`php dandelion.phar split:all master`  
-`php dandelion.phar release:all master`
+`php dandelion.phar $COMMAND`
 
 ### composer
 #### Global Installation
@@ -46,21 +53,18 @@ Make sure to add composer to your PATH:
 **macOS:** $HOME/.composer/vendor/bin
 **GNU / Linux Distributions:** $HOME/.config/composer/vendor/bin or $HOME/.composer/vendor/bin
 
-Run:  
-`dandelion split:all master`
-or  
-`dandelion release:all master`
+`dandelion $COMMAND`
 
 #### Local Installation
-`composer require-dev dandelionphp/dandelion`
+`composer require --dev dandelionphp/dandelion`
 
-Run:
-`vendor/bin/dandelion split:all master`
-or
-`vendor/bin/dandelion release:all master`
+`vendor/bin/dandelion $COMMAND`
 
 ### List all available commands
 `dandelion list`
+
+### Install splitsh
+TBD
 
 ## Example Config
 ```json
@@ -89,4 +93,3 @@ If you choose to use the token based authentication, keep in mind that your toke
 in `.git/config`. You'll find more information about that auth style [here](https://github.blog/2012-09-21-easier-builds-and-deployments-using-git-over-https-and-oauth/).
 Go to your [Github](https://github.com/settings/tokens) settings and create a personal access token. The scope for the access token is `repo`.
 
-#### Gitlab

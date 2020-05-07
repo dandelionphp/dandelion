@@ -32,9 +32,9 @@ interface GitInterface
      * @param string $name
      * @param string $url
      *
-     * @return \Dandelion\VersionControl\GitInterface
+     * @return bool
      */
-    public function addRemote(string $name, string $url): GitInterface;
+    public function addRemote(string $name, string $url): bool;
 
     /**
      * @param string $remote

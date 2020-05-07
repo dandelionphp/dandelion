@@ -10,6 +10,7 @@ use Dandelion\Operation\Result\MessageFactoryInterface;
 use Dandelion\Operation\Result\MessageInterface;
 use Dandelion\Process\ProcessPoolFactoryInterface;
 use Symfony\Component\Process\Process;
+use Phar;
 
 abstract class AbstractOperation
 {
@@ -120,4 +121,17 @@ abstract class AbstractOperation
      * @return string[]
      */
     abstract protected function getCommand(string $repositoryName, string $branch): array;
+
+    /**
+     * @return string
+     */
+    protected function getDandelionPath(): string
+    {
+        $path = sprintf('%sdandelion', $this->binDir);
+        if (Phar::running()) {
+            $path = Phar::running(false);
+        }
+
+        return $path;
+    }
 }

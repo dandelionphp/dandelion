@@ -86,9 +86,9 @@ class Git implements GitInterface
      * @param string $name
      * @param string $url
      *
-     * @return \Dandelion\VersionControl\GitInterface
+     * @return bool
      */
-    public function addRemote(string $name, string $url): GitInterface
+    public function addRemote(string $name, string $url): bool
     {
         $command = [
             'git',
@@ -98,9 +98,14 @@ class Git implements GitInterface
             $url
         ];
 
-        $this->runCommandAsProcess($command);
+        try {
+            $this->runCommandAsProcess($command);
+        } catch (RuntimeException $e) {
+            return false;
+        }
 
-        return $this;
+
+        return true;
     }
 
     /**

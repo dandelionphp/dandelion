@@ -116,7 +116,7 @@ class Releaser extends AbstractOperation
     protected function getCommand(string $repositoryName, string $branch): array
     {
         return [
-            sprintf('%sdandelion', $this->binDir),
+            $this->getDandelionPath(),
             ReleaseCommand::NAME,
             $repositoryName,
             $branch
