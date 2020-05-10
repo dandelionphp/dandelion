@@ -32,15 +32,6 @@ class DandelionServiceProviderTest extends Unit
      */
     protected $expectedRootDir;
 
-    /**
-     * @var string
-     */
-    protected $expectedSrcDir;
-
-    /**
-     * @var string
-     */
-    protected $expectedBinDir;
 
     /**
      * @var string
@@ -55,8 +46,6 @@ class DandelionServiceProviderTest extends Unit
         parent::_before();
 
         $this->expectedRootDir = codecept_root_dir('src/Dandelion/../../');
-        $this->expectedSrcDir = sprintf('%ssrc%s', $this->expectedRootDir, DIRECTORY_SEPARATOR);
-        $this->expectedBinDir = sprintf('%sbin%s', $this->expectedRootDir, DIRECTORY_SEPARATOR);
         $this->expectedResourcesDir = sprintf('%sresources%s', $this->expectedRootDir, DIRECTORY_SEPARATOR);
 
         $this->container = new Container();
@@ -73,12 +62,6 @@ class DandelionServiceProviderTest extends Unit
 
         $this->assertTrue($this->container->offsetExists('root_dir'));
         $this->assertEquals($this->expectedRootDir, $this->container->offsetGet('root_dir'));
-
-        $this->assertTrue($this->container->offsetExists('src_dir'));
-        $this->assertEquals($this->expectedSrcDir, $this->container->offsetGet('src_dir'));
-
-        $this->assertTrue($this->container->offsetExists('bin_dir'));
-        $this->assertEquals($this->expectedBinDir, $this->container->offsetGet('bin_dir'));
 
         $this->assertTrue($this->container->offsetExists('resources_dir'));
         $this->assertEquals($this->expectedResourcesDir, $this->container->offsetGet('resources_dir'));

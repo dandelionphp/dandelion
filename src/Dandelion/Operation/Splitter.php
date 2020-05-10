@@ -7,15 +7,19 @@ namespace Dandelion\Operation;
 use Dandelion\Configuration\ConfigurationLoaderInterface;
 use Dandelion\Console\Command\SplitCommand;
 use Dandelion\Exception\RepositoryNotFoundException;
+use Dandelion\Lock\LockTrait;
 use Dandelion\Operation\Result\MessageFactoryInterface;
 use Dandelion\Process\ProcessPoolFactoryInterface;
 use Dandelion\VersionControl\GitInterface;
 use Dandelion\VersionControl\SplitshLiteInterface;
 
+use Symfony\Component\Lock\LockFactory;
 use function sprintf;
 
 class Splitter extends AbstractOperation
 {
+    use LockTrait;
+
     /**
      * @var \Dandelion\VersionControl\GitInterface
      */
@@ -33,7 +37,7 @@ class Splitter extends AbstractOperation
      * @param \Dandelion\Operation\Result\MessageFactoryInterface $messageFactory
      * @param \Dandelion\VersionControl\GitInterface $git
      * @param \Dandelion\VersionControl\SplitshLiteInterface $splitshLite
-     * @param string $binDir
+     * @param \Symfony\Component\Lock\LockFactory $lockFactory
      */
     public function __construct(
         ConfigurationLoaderInterface $configurationLoader,
@@ -42,12 +46,13 @@ class Splitter extends AbstractOperation
         MessageFactoryInterface $messageFactory,
         GitInterface $git,
         SplitshLiteInterface $splitshLite,
-        string $binDir
+        LockFactory $lockFactory
     ) {
-        parent::__construct($configurationLoader, $processPoolFactory, $resultFactory, $messageFactory, $binDir);
+        parent::__construct($configurationLoader, $processPoolFactory, $resultFactory, $messageFactory);
 
         $this->git = $git;
         $this->splitshLite = $splitshLite;
+        $this->lockFactory = $lockFactory;
     }
 
     /**
@@ -69,9 +74,15 @@ class Splitter extends AbstractOperation
 
         $repository = $repositories->offsetGet($repositoryName);
 
+        if (!$this->acquire('split')) {
+            // TODO: Let's talk about it!
+        }
+
         if (!$this->git->existsRemote($repositoryName)) {
             $this->git->addRemote($repositoryName, $repository->getUrl());
         }
+
+        $this->release();
 
         $sha1 = $this->splitshLite->getSha1($repository->getPath());
         $refSpec = sprintf('%s:refs/heads/%s', $sha1, $branch);
@@ -90,7 +101,7 @@ class Splitter extends AbstractOperation
     protected function getCommand(string $repositoryName, string $branch): array
     {
         return [
-            sprintf('%sdandelion', $this->binDir),
+            getenv('DANDELION_BINARY'),
             SplitCommand::NAME,
             $repositoryName,
             $branch
