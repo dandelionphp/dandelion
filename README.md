@@ -78,15 +78,19 @@ You can download an example configuration [here](https://raw.githubusercontent.c
 ### Properties
 **repositories**_(type:Object)_:    
 Contains all information about your repositories. Repository name can be anything.    
+    
 **url**_(type:String)_:   
 Url to read-only repository.    
+    
 **path**_(type:String)_:   
 Name of your local package.   
+    
 **version**_(type:String)_:   
 Package version to release.
-  
+   
+   
 **pathToTempDirectory**_(type:String)_:    
-Can be any writeable path and is used to create releases of your packages.
+Can be any writeable path and is used to create releases of your packages.   
 **pathToSplitshLite**_(type:String)_:   
 Path to splitsh library, default is /usr/local/bin/split-slite, see install splitsh for more information.
 
