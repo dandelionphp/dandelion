@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Dandelion\Lock;
 
 trait LockTrait
@@ -10,29 +12,26 @@ trait LockTrait
     private $lockFactory;
 
     /**
-     * @var \Symfony\Component\Lock\Lock
+     * @var \Symfony\Component\Lock\LockInterface|null
      */
     private $lock;
 
     /**
      * @param string $identifier
      *
-     * @return bool
+     * @return void
      */
-    private function acquire(string $identifier): bool
+    private function acquire(string $identifier): void
     {
         if ($this->lockFactory === null) {
-            return true;
+            return;
         }
 
         $this->lock = $this->lockFactory->createLock($identifier);
 
         if (!$this->lock->acquire(true)) {
             $this->lock = null;
-            return false;
         }
-
-        return true;
     }
 
     /**

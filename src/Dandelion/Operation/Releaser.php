@@ -115,7 +115,7 @@ class Releaser extends AbstractOperation
     protected function getCommand(string $repositoryName, string $branch): array
     {
         return [
-            getenv('DANDELION_BINARY'),
+            DANDELION_BINARY,
             ReleaseCommand::NAME,
             $repositoryName,
             $branch

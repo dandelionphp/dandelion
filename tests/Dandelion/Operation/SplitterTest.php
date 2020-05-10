@@ -18,6 +18,8 @@ use Dandelion\VersionControl\SplitshLiteInterface;
 use Exception;
 use Iterator;
 
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\LockInterface;
 use function sha1;
 use function sprintf;
 
@@ -89,9 +91,14 @@ class SplitterTest extends Unit
     protected $splitshLiteMock;
 
     /**
-     * @var string
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Symfony\Component\Lock\LockFactory
      */
-    protected $pathToBinDirectory;
+    protected $lockFactoryMock;
+
+    /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Symfony\Component\Lock\LockInterface
+     */
+    protected $lockMock;
 
     /**
      * @return void
@@ -99,8 +106,6 @@ class SplitterTest extends Unit
     protected function _before(): void
     {
         parent::_before();
-
-        $this->pathToBinDirectory = '/path/to/bin/directory';
 
         $this->configurationLoaderMock = $this->getMockBuilder(ConfigurationLoaderInterface::class)
             ->disableOriginalConstructor()
@@ -150,6 +155,14 @@ class SplitterTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
+        $this->lockFactoryMock = $this->getMockBuilder(LockFactory::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->lockMock = $this->getMockBuilder(LockInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
         $this->splitter = new Splitter(
             $this->configurationLoaderMock,
             $this->processPoolFactoryMock,
@@ -157,7 +170,7 @@ class SplitterTest extends Unit
             $this->messageFactoryMock,
             $this->gitMock,
             $this->splitshLiteMock,
-            $this->pathToBinDirectory
+            $this->lockFactoryMock
         );
     }
 
@@ -200,6 +213,16 @@ class SplitterTest extends Unit
             ->method('getPath')
             ->willReturn($repositoryPath);
 
+        $this->lockFactoryMock->expects($this->atLeastOnce())
+            ->method('createLock')
+            ->with(Splitter::LOCK_IDENTIFIER)
+            ->willReturn($this->lockMock);
+
+        $this->lockMock->expects($this->atLeastOnce())
+            ->method('acquire')
+            ->with(true)
+            ->willReturn(true);
+
         $this->gitMock->expects($this->atLeastOnce())
             ->method('existsRemote')
             ->with($repositoryName)
@@ -208,6 +231,10 @@ class SplitterTest extends Unit
         $this->gitMock->expects($this->atLeastOnce())
             ->method('addRemote')
             ->with($repositoryName, $repositoryUrl);
+
+        $this->lockMock->expects($this->atLeastOnce())
+            ->method('release')
+            ->willReturn(true);
 
         $this->splitshLiteMock->expects($this->atLeastOnce())
             ->method('getSha1')
@@ -256,6 +283,9 @@ class SplitterTest extends Unit
 
         $this->repositoryMock->expects($this->never())
             ->method('getPath');
+
+        $this->lockFactoryMock->expects($this->never())
+            ->method('createLock');
 
         $this->gitMock->expects($this->never())
             ->method('existsRemote');
@@ -324,7 +354,7 @@ class SplitterTest extends Unit
         $this->processPoolMock->expects($this->atLeastOnce())
             ->method('addProcess')
             ->with([
-                sprintf('%sdandelion', $this->pathToBinDirectory),
+                DANDELION_BINARY,
                 SplitCommand::NAME,
                 $repositoryName,
                 $branch

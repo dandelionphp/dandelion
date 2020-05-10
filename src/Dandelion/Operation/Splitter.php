@@ -12,13 +12,15 @@ use Dandelion\Operation\Result\MessageFactoryInterface;
 use Dandelion\Process\ProcessPoolFactoryInterface;
 use Dandelion\VersionControl\GitInterface;
 use Dandelion\VersionControl\SplitshLiteInterface;
-
 use Symfony\Component\Lock\LockFactory;
+
 use function sprintf;
 
 class Splitter extends AbstractOperation
 {
     use LockTrait;
+
+    public const LOCK_IDENTIFIER = 'LOCK_SPLIT';
 
     /**
      * @var \Dandelion\VersionControl\GitInterface
@@ -74,9 +76,7 @@ class Splitter extends AbstractOperation
 
         $repository = $repositories->offsetGet($repositoryName);
 
-        if (!$this->acquire('split')) {
-            // TODO: Let's talk about it!
-        }
+        $this->acquire(static::LOCK_IDENTIFIER);
 
         if (!$this->git->existsRemote($repositoryName)) {
             $this->git->addRemote($repositoryName, $repository->getUrl());
@@ -101,7 +101,7 @@ class Splitter extends AbstractOperation
     protected function getCommand(string $repositoryName, string $branch): array
     {
         return [
-            getenv('DANDELION_BINARY'),
+            DANDELION_BINARY,
             SplitCommand::NAME,
             $repositoryName,
             $branch
