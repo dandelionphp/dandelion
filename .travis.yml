@@ -28,7 +28,7 @@ jobs:
       script:
         - docker run --rm -v $PWD:/home/dandelion/app -w /home/dandelion/app --user=root dandelionphp/php:7.4-cli-alpine-dev /bin/sh -c "make bundle"
         - make docker-tag
-      if: tag =~ ^\d+\.\d+\.\d+$
+      if: tag IS present
 
 deploy:
   - provider: releases
