@@ -32,7 +32,7 @@ Choose your favorite method below.
 2. Use split all to push all changes to read-only repositories
 3. Use release all to create new releases for your packages
 
-### List all available commands
+### Available commands
 * `dandelion split:all` -> splits all packages listed in your configuration
 * `dandelion split $PACKAGE_NAME` -> split out a specific package
 * `dandelion release:all` -> release all packages listed in your configuration
