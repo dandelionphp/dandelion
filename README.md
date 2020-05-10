@@ -23,7 +23,7 @@ Create a temp folder in your repository root where the split repositories will b
 
 ## Usage
 The recommended way is to use docker. The docker image comes with a self-contained splitsh binary, you don't need to download or compile it yourself.
-If you choose one of the other options to run Dandelion, please have a look at the section "Install splitsh".
+If you choose one of the other options to run Dandelion, please have a look at the section [Install splitsh](https://github.com/dandelionphp/dandelion/tree/feature/add-lock#install-splitsh).
   
 Choose your favorite method below.
 
@@ -42,10 +42,8 @@ Choose your favorite method below.
 `docker run --rm -v $PWD:/home/dandelion dandelion:latest -c "$COMMAND"` 
 
 When you choose Docker as preferred way, you will need to use a Git authentication flow that runs without user interaction. 
-If that is not a viable option for you but you still want to use Docker you might configure your own Docker image using a keypair authentication flow.  
+If that is not a viable option for you but you still want to use Docker, you can configure your own Docker image using a keypair authentication flow.  
   
-In general this is only necessary for private repositories. If you use Dandelion in a public repository context you can use https.
-
 ### PHAR
 Download the latest release from the [Github](https://github.com/dandelionphp/dandelion/releases).
 
@@ -54,10 +52,10 @@ Download the latest release from the [Github](https://github.com/dandelionphp/da
 ### composer
 #### Global Installation
 `composer global require dandelionphp/dandelion`
-
-Make sure to add composer to your PATH:  
-**macOS:** $HOME/.composer/vendor/bin
-**GNU / Linux Distributions:** $HOME/.config/composer/vendor/bin or $HOME/.composer/vendor/bin
+    
+Make sure to add composer to your PATH:      
+**macOS:** $HOME/.composer/vendor/bin    
+**GNU / Linux Distributions:** $HOME/.config/composer/vendor/bin or $HOME/.composer/vendor/bin   
 
 `dandelion $COMMAND`
 
@@ -71,25 +69,25 @@ Currently splitsh-lite is available for MacOS and Linux. If you need a different
 In case you need to compile an alpine version, you might want to take a look at the [dockerfile](https://github.com/dandelionphp/dandelion/blob/master/Dockerfile), 
 which does exatly that in the fist stage.   
    
-Download the binary from [Github](https://github.com/splitsh/lite/releases) and place it in /usr/local/bin or wherever you like.
+Download the binary from [Github](https://github.com/splitsh/lite/releases) and place it in `/usr/local/bin` or wherever you like.
 If you choose a different location keep in mind to set the path in the configuration file.   
 
 ## Configuration
 You can download an example configuration [here](https://raw.githubusercontent.com/dandelionphp/dandelion-example/master/dandelion-example.json).
    
 ### Properties
-*repositories*_(type:Object)_:    
-Contains all information about your repositories. Repository name can be anything.
-*url*_(type:String)_:   
+**repositories**_(type:Object)_:    
+Contains all information about your repositories. Repository name can be anything.    
+**url**_(type:String)_:   
 Url to read-only repository.    
-*path*_(type:String)_:   
+**path**_(type:String)_:   
 Name of your local package.   
-*version*_(type:String)_:   
+**version**_(type:String)_:   
 Package version to release.
   
-*pathToTempDirectory*_(type:String)_:    
+**pathToTempDirectory**_(type:String)_:    
 Can be any writeable path and is used to create releases of your packages.
-*pathToSplitshLite*_(type:String)_:   
+**pathToSplitshLite**_(type:String)_:   
 Path to splitsh library, default is /usr/local/bin/split-slite, see install splitsh for more information.
 
 ### Example Config
