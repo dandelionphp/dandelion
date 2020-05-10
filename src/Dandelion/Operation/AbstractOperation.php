@@ -34,29 +34,21 @@ abstract class AbstractOperation
     protected $messageFactory;
 
     /**
-     * @var string
-     */
-    protected $binDir;
-
-    /**
      * @param \Dandelion\Configuration\ConfigurationLoaderInterface $configurationLoader
      * @param \Dandelion\Process\ProcessPoolFactoryInterface $processPoolFactory
      * @param \Dandelion\Operation\ResultFactoryInterface $resultFactory
      * @param \Dandelion\Operation\Result\MessageFactoryInterface $messageFactory
-     * @param string $binDir
      */
     public function __construct(
         ConfigurationLoaderInterface $configurationLoader,
         ProcessPoolFactoryInterface $processPoolFactory,
         ResultFactoryInterface $resultFactory,
-        MessageFactoryInterface $messageFactory,
-        string $binDir
+        MessageFactoryInterface $messageFactory
     ) {
         $this->configurationLoader = $configurationLoader;
         $this->processPoolFactory = $processPoolFactory;
         $this->resultFactory = $resultFactory;
         $this->messageFactory = $messageFactory;
-        $this->binDir = $binDir;
     }
 
     /**

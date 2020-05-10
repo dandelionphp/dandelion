@@ -13,6 +13,7 @@ use Dandelion\Operation\Result\MessageFactoryInterface;
 use Dandelion\Process\ProcessPoolFactoryInterface;
 use Dandelion\VersionControl\GitInterface;
 
+use function getenv;
 use function sprintf;
 
 class Releaser extends AbstractOperation
@@ -34,7 +35,6 @@ class Releaser extends AbstractOperation
      * @param \Dandelion\Operation\ResultFactoryInterface $resultFactory
      * @param \Dandelion\Operation\Result\MessageFactoryInterface $messageFactory
      * @param \Dandelion\VersionControl\GitInterface $git
-     * @param string $binDir
      */
     public function __construct(
         ConfigurationLoaderInterface $configurationLoader,
@@ -42,10 +42,9 @@ class Releaser extends AbstractOperation
         ProcessPoolFactoryInterface $processPoolFactory,
         ResultFactoryInterface $resultFactory,
         MessageFactoryInterface $messageFactory,
-        GitInterface $git,
-        string $binDir
+        GitInterface $git
     ) {
-        parent::__construct($configurationLoader, $processPoolFactory, $resultFactory, $messageFactory, $binDir);
+        parent::__construct($configurationLoader, $processPoolFactory, $resultFactory, $messageFactory);
         $this->filesystem = $filesystem;
         $this->git = $git;
     }
@@ -116,7 +115,7 @@ class Releaser extends AbstractOperation
     protected function getCommand(string $repositoryName, string $branch): array
     {
         return [
-            sprintf('%sdandelion', $this->binDir),
+            DANDELION_BINARY,
             ReleaseCommand::NAME,
             $repositoryName,
             $branch

@@ -25,6 +25,14 @@ foreach($possibleRootDirs as $possibleRootDirIndex => $possibleRootDir) {
     }
 }
 
+$dandelionBinary = Phar::running(false);
+
+if ($dandelionBinary === '') {
+    $dandelionBinary = __FILE__;
+}
+
+\define('DANDELION_BINARY, $dandelionBinary);
+
 $container = (new \Pimple\Container())
     ->register(new \Dandelion\DandelionServiceProvider());
 

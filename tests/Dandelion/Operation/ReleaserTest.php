@@ -23,11 +23,6 @@ use Symfony\Component\Process\Process;
 class ReleaserTest extends Unit
 {
     /**
-     * @var string
-     */
-    protected $pathToBinDirectory;
-
-    /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Configuration\ConfigurationLoaderInterface
      */
     protected $configurationLoaderMock;
@@ -99,8 +94,6 @@ class ReleaserTest extends Unit
     {
         parent::_before();
 
-        $this->pathToBinDirectory = '/path/to/bin/directory';
-
         $this->configurationLoaderMock = $this->getMockBuilder(ConfigurationLoaderInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -155,8 +148,7 @@ class ReleaserTest extends Unit
             $this->processPoolFactoryMock,
             $this->resultFactoryMock,
             $this->messageFactoryMock,
-            $this->gitMock,
-            $this->pathToBinDirectory
+            $this->gitMock
         );
     }
 
@@ -447,7 +439,7 @@ class ReleaserTest extends Unit
         $this->processPoolMock->expects($this->atLeastOnce())
             ->method('addProcess')
             ->with([
-                sprintf('%sdandelion', $this->pathToBinDirectory),
+                DANDELION_BINARY,
                 ReleaseCommand::NAME,
                 $repositoryName,
                 $branch

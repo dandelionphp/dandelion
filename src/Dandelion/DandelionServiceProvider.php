@@ -25,6 +25,8 @@ use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 use Swaggest\JsonSchema\Schema;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\SemaphoreStore;
 use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
@@ -48,6 +50,8 @@ class DandelionServiceProvider implements ServiceProviderInterface
         $container = $this->registerSerializer($container);
         $container = $this->registerConfigurationLoader($container);
         $container = $this->registerConfigurationFinder($container);
+        $container = $this->registerLockStore($container);
+        $container = $this->registerLockFactory($container);
         $container = $this->registerProcessFactory($container);
         $container = $this->registerProcessPoolFactory($container);
         $container = $this->registerResultFactory($container);
@@ -74,16 +78,8 @@ class DandelionServiceProvider implements ServiceProviderInterface
             return $rootDir;
         });
 
-        $container->offsetSet('src_dir', static function () use ($rootDir) {
-            return sprintf('%ssrc%s', $rootDir, DIRECTORY_SEPARATOR);
-        });
-
         $container->offsetSet('resources_dir', static function () use ($rootDir) {
             return sprintf('%sresources%s', $rootDir, DIRECTORY_SEPARATOR);
-        });
-
-        $container->offsetSet('bin_dir', static function () use ($rootDir) {
-            return sprintf('%sbin%s', $rootDir, DIRECTORY_SEPARATOR);
         });
 
         return $container;
@@ -146,7 +142,7 @@ class DandelionServiceProvider implements ServiceProviderInterface
                 $container->offsetGet('message_factory'),
                 $container->offsetGet('git'),
                 $container->offsetGet('splitsh_lite'),
-                $container->offsetGet('bin_dir')
+                $container->offsetGet('lock_factory')
             );
         });
 
@@ -162,6 +158,34 @@ class DandelionServiceProvider implements ServiceProviderInterface
     {
         $container->offsetSet('git', static function (Container $container) {
             return new Git($container->offsetGet('process_factory'));
+        });
+
+        return $container;
+    }
+
+    /**
+     * @param \Pimple\Container $container
+     * @return \Pimple\Container
+     */
+    protected function registerLockStore(Container $container): Container
+    {
+        $container->offsetSet('lock_store', static function () {
+            return new SemaphoreStore();
+        });
+
+        return $container;
+    }
+
+    /**
+     * @param \Pimple\Container $container
+     * @return \Pimple\Container
+     */
+    protected function registerLockFactory(Container $container): Container
+    {
+        $container->offsetSet('lock_factory', static function (Container $container) {
+            return new LockFactory(
+                $container->offsetGet('lock_store')
+            );
         });
 
         return $container;
@@ -360,8 +384,7 @@ class DandelionServiceProvider implements ServiceProviderInterface
                 $container->offsetGet('process_pool_factory'),
                 $container->offsetGet('result_factory'),
                 $container->offsetGet('message_factory'),
-                $container->offsetGet('git'),
-                $container->offsetGet('bin_dir')
+                $container->offsetGet('git')
             );
         });
 
