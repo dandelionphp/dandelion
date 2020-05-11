@@ -13,7 +13,7 @@ bundle: install
 	box compile
 
 docker-tag: docker-build
-	docker tag dandelion dandelionphp/dandelion:$(TRAVIS_TAG)
+	docker tag dandelionphp/dandelion dandelionphp/dandelion:$(TRAVIS_TAG)
 
 docker-build:
 	docker build -t dandelionphp/dandelion .
