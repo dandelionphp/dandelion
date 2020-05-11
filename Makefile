@@ -16,7 +16,7 @@ docker-tag: docker-build
 	docker tag dandelion dandelionphp/dandelion:$(TRAVIS_TAG)
 
 docker-build:
-	docker build -t dandelion .
+	docker build -t dandelionphp/dandelion .
 
 docker-login:
 	echo "$(DOCKER_PASSWORD)" | docker login -u "$(DOCKER_USERNAME)" --password-stdin
