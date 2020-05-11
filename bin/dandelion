@@ -31,7 +31,7 @@ if ($dandelionBinary === '') {
     $dandelionBinary = __FILE__;
 }
 
-\define('DANDELION_BINARY, $dandelionBinary);
+\define('DANDELION_BINARY', $dandelionBinary);
 
 $container = (new \Pimple\Container())
     ->register(new \Dandelion\DandelionServiceProvider());
