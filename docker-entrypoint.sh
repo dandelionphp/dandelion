@@ -10,7 +10,7 @@ isCommand() {
 
 if [ "${1#-}" != "$1" ]; then
   set -- dandelion "$@"
-eif [ "$1" = 'dandelion' ]; then
+elif [ "$1" = 'dandelion' ]; then
   set -- "$@"
 elif isCommand "$1"; then
   set -- dandelion "$@"
