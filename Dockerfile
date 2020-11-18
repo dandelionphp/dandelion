@@ -20,4 +20,12 @@ RUN set -eux; \
   chmod +x /usr/bin/dandelion; \
   dandelion --version --no-interaction --ansi
 
-ENTRYPOINT ["/bin/sh"]
+USER root
+
+COPY ./docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+
+USER dandelion
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+CMD ["dandelion"]
