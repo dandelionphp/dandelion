@@ -207,7 +207,7 @@ class Git implements GitInterface
         $process = $this->processFactory->create($command);
 
         $process->run();
-        
+
         if (!$process->isSuccessful()) {
             throw new RuntimeException($process->getExitCodeText(), $process->getExitCode());
         }
