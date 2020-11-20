@@ -184,6 +184,11 @@ class ReleaserTest extends Unit
             ->willReturn($this->repositoryMock);
 
         $this->filesystemMock->expects($this->atLeastOnce())
+            ->method('createDirectory')
+            ->with($pathToRepositoryTempDirectory)
+            ->willReturn($this->filesystemMock);
+
+        $this->filesystemMock->expects($this->atLeastOnce())
             ->method('getCurrentWorkingDirectory')
             ->willReturn($pathToCurrentWorkingDirectory);
 
@@ -273,6 +278,9 @@ class ReleaserTest extends Unit
             ->with($repositoryName);
 
         $this->filesystemMock->expects($this->never())
+            ->method('createDirectory');
+
+        $this->filesystemMock->expects($this->never())
             ->method('getCurrentWorkingDirectory');
 
         $this->configurationMock->expects($this->never())
@@ -338,6 +346,11 @@ class ReleaserTest extends Unit
             ->method('offsetGet')
             ->with($repositoryName)
             ->willReturn($this->repositoryMock);
+
+        $this->filesystemMock->expects($this->atLeastOnce())
+            ->method('createDirectory')
+            ->with($pathToRepositoryTempDirectory)
+            ->willReturn($this->filesystemMock);
 
         $this->filesystemMock->expects($this->atLeastOnce())
             ->method('getCurrentWorkingDirectory')

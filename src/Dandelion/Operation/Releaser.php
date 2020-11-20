@@ -72,6 +72,7 @@ class Releaser extends AbstractOperation
         $tempDirectory = rtrim($configuration->getPathToTempDirectory(), DIRECTORY_SEPARATOR)
             . DIRECTORY_SEPARATOR . $repositoryName . DIRECTORY_SEPARATOR;
 
+        $this->filesystem->createDirectory($tempDirectory);
         $currentWorkingDirectory = $this->filesystem->getCurrentWorkingDirectory();
         $this->filesystem->changeDirectory($tempDirectory);
 

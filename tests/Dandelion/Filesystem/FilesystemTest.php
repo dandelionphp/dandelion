@@ -74,6 +74,38 @@ class FilesystemTest extends Unit
     /**
      * @return void
      */
+    public function testCreateDirectory(): void
+    {
+        $root = vfsStream::setup('root');
+        $pathToNewDirectory = $root->url() . DIRECTORY_SEPARATOR . 'dir';
+
+        $this->assertEquals($this->filesystem, $this->filesystem->createDirectory($pathToNewDirectory));
+        $this->assertDirectoryExists($pathToNewDirectory);
+    }
+
+    /**
+     * @return void
+     */
+    public function testCreateDirectoryWithError(): void
+    {
+        $root = vfsStream::setup('root', 0400)
+            ->chown(vfsStream::getCurrentUser() + 1)
+            ->chgrp(vfsStream::getCurrentGroup() + 1);
+
+        $pathToNewDirectory = $root->url() . DIRECTORY_SEPARATOR . 'dir';
+
+        try {
+            $this->filesystem->createDirectory($pathToNewDirectory);
+        } catch (Exception $e) {
+            return;
+        }
+
+        $this->fail();
+    }
+
+    /**
+     * @return void
+     */
     public function testChangeDirectory(): void
     {
         $currentWorkingDirectory = getcwd();
