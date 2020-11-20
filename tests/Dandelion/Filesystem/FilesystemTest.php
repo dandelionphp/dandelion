@@ -13,6 +13,10 @@ use function rtrim;
 
 class FilesystemTest extends Unit
 {
+    protected const ROOT_DIR_NAME = 'root';
+    protected const DIR_NAME = 'dir';
+    protected const FILE_NAME = 'file.ext';
+
     /**
      * @var \Dandelion\Filesystem\FilesystemInterface
      */
@@ -34,8 +38,8 @@ class FilesystemTest extends Unit
     public function testReadFile(): void
     {
         $content = 'Lorem ipsum';
-        $root = vfsStream::setup('root');
-        $url = vfsStream::newFile('file.ext')
+        $root = vfsStream::setup(static::ROOT_DIR_NAME);
+        $url = vfsStream::newFile(static::FILE_NAME)
             ->at($root)
             ->setContent($content)
             ->url();
@@ -48,8 +52,8 @@ class FilesystemTest extends Unit
      */
     public function testReadFileWithError(): void
     {
-        $root = vfsStream::setup('root');
-        $url = $root->url() . DIRECTORY_SEPARATOR . 'file.ext';
+        $root = vfsStream::setup(static::ROOT_DIR_NAME);
+        $url = $root->url() . DIRECTORY_SEPARATOR . static::FILE_NAME;
 
         try {
             $this->filesystem->readFile($url);
@@ -69,6 +73,38 @@ class FilesystemTest extends Unit
             rtrim(getcwd(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR,
             $this->filesystem->getCurrentWorkingDirectory()
         );
+    }
+
+    /**
+     * @return void
+     */
+    public function testCreateDirectory(): void
+    {
+        $root = vfsStream::setup(static::ROOT_DIR_NAME);
+        $pathToNewDirectory = $root->url() . DIRECTORY_SEPARATOR . static::DIR_NAME;
+
+        $this->assertEquals($this->filesystem, $this->filesystem->createDirectory($pathToNewDirectory));
+        $this->assertDirectoryExists($pathToNewDirectory);
+    }
+
+    /**
+     * @return void
+     */
+    public function testCreateDirectoryWithError(): void
+    {
+        $root = vfsStream::setup(static::ROOT_DIR_NAME, 0400)
+            ->chown(vfsStream::getCurrentUser() + 1)
+            ->chgrp(vfsStream::getCurrentGroup() + 1);
+
+        $pathToNewDirectory = $root->url() . DIRECTORY_SEPARATOR . static::DIR_NAME;
+
+        try {
+            $this->filesystem->createDirectory($pathToNewDirectory);
+        } catch (Exception $e) {
+            return;
+        }
+
+        $this->fail();
     }
 
     /**
@@ -109,8 +145,8 @@ class FilesystemTest extends Unit
      */
     public function testRemoveFile(): void
     {
-        $root = vfsStream::setup('root');
-        $url = vfsStream::newFile('file.ext')
+        $root = vfsStream::setup(static::ROOT_DIR_NAME);
+        $url = vfsStream::newFile(static::FILE_NAME)
             ->at($root)
             ->url();
 
@@ -123,7 +159,7 @@ class FilesystemTest extends Unit
      */
     public function testRemoveFileWithDirectoryAsParameter(): void
     {
-        $root = vfsStream::setup('root');
+        $root = vfsStream::setup(static::ROOT_DIR_NAME);
 
         try {
             $this->filesystem->removeFile($root->url());
@@ -139,8 +175,8 @@ class FilesystemTest extends Unit
      */
     public function testRemoveFileWithWrongPermission(): void
     {
-        $root = vfsStream::setup('root', 0400);
-        $url = vfsStream::newFile('file.ext', 0400)
+        $root = vfsStream::setup(static::ROOT_DIR_NAME, 0400);
+        $url = vfsStream::newFile(static::FILE_NAME, 0400)
             ->at($root)
             ->chown(vfsStream::OWNER_ROOT)
             ->chgrp(vfsStream::GROUP_ROOT)
@@ -160,8 +196,8 @@ class FilesystemTest extends Unit
      */
     public function testRemoveDirectory(): void
     {
-        $root = vfsStream::setup('root');
-        $url = vfsStream::newDirectory('dir')
+        $root = vfsStream::setup(static::ROOT_DIR_NAME);
+        $url = vfsStream::newDirectory(static::DIR_NAME)
             ->at($root)
             ->url();
 
@@ -174,8 +210,8 @@ class FilesystemTest extends Unit
      */
     public function testRemoveDirectoryWithFileAsParameter(): void
     {
-        $root = vfsStream::setup('root');
-        $url = vfsStream::newFile('file.ext')
+        $root = vfsStream::setup(static::ROOT_DIR_NAME);
+        $url = vfsStream::newFile(static::FILE_NAME)
             ->at($root)
             ->url();
 
@@ -193,8 +229,8 @@ class FilesystemTest extends Unit
      */
     public function testRemoveDirectoryWithWrongPermission(): void
     {
-        $root = vfsStream::setup('root', 0555);
-        $url = vfsStream::newDirectory('dir', 0555)
+        $root = vfsStream::setup(static::ROOT_DIR_NAME, 0555);
+        $url = vfsStream::newDirectory(static::DIR_NAME, 0555)
             ->chown(vfsStream::OWNER_ROOT)
             ->chgrp(vfsStream::GROUP_ROOT)
             ->at($root)
@@ -214,8 +250,8 @@ class FilesystemTest extends Unit
      */
     public function testRemoveDirectoryWithContent(): void
     {
-        $root = vfsStream::setup('root', null, [
-            'dir' => [
+        $root = vfsStream::setup(static::ROOT_DIR_NAME, null, [
+            static::DIR_NAME => [
                 'subdir1' => [
                     'file1.ext' => 'Lorem ipsum ...',
                     'file2.ext' => 'Lorem ipsum ...'
@@ -225,7 +261,7 @@ class FilesystemTest extends Unit
                 'file1.ext' => 'Lorem ipsum ...'
             ]
         ]);
-        $url = $root->getChild('dir')->url();
+        $url = $root->getChild(static::DIR_NAME)->url();
 
         $this->assertEquals($this->filesystem, $this->filesystem->removeDirectory($url));
         $this->assertDirectoryDoesNotExist($url);
@@ -236,8 +272,8 @@ class FilesystemTest extends Unit
      */
     public function testRemoveDirectoryWithContentAndWrongPermission(): void
     {
-        $root = vfsStream::setup('root', 400, [
-            'dir' => [
+        $root = vfsStream::setup(static::ROOT_DIR_NAME, 400, [
+            static::DIR_NAME => [
                 'subdir1' => [
                     'file1.ext' => 'Lorem ipsum ...',
                     'file2.ext' => 'Lorem ipsum ...'
@@ -248,12 +284,12 @@ class FilesystemTest extends Unit
             ]
         ]);
 
-        $root->getChild('dir')
+        $root->getChild(static::DIR_NAME)
             ->chmod(0400)
             ->chown(vfsStream::OWNER_ROOT)
             ->chgrp(vfsStream::GROUP_ROOT);
 
-        $url = $root->getChild('dir')->url();
+        $url = $root->getChild(static::DIR_NAME)->url();
 
         try {
             $this->filesystem->removeDirectory($url);

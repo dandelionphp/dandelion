@@ -58,6 +58,23 @@ class Filesystem implements FilesystemInterface
     }
 
     /**
+     * @param string $path
+     * @param int $mode
+     *
+     * @return \Dandelion\Filesystem\FilesystemInterface
+     *
+     * @throws \Dandelion\Exception\IOException
+     */
+    public function createDirectory(string $path, int $mode = 0755): FilesystemInterface
+    {
+        if (!mkdir($path, $mode, true) && !is_dir($path)) {
+            throw new IOException(sprintf('Could not create directory.'));
+        }
+
+        return $this;
+    }
+
+    /**
      * @param string $directory
      *
      * @return \Dandelion\Filesystem\FilesystemInterface

@@ -19,6 +19,14 @@ interface FilesystemInterface
     public function getCurrentWorkingDirectory(): string;
 
     /**
+     * @param string $path
+     * @param int $mode
+     *
+     * @return \Dandelion\Filesystem\FilesystemInterface
+     */
+    public function createDirectory(string $path, int $mode = 0755): FilesystemInterface;
+
+    /**
      * @param string $directory
      *
      * @return \Dandelion\Filesystem\FilesystemInterface
