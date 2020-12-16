@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Dandelion;
 
 use Codeception\Test\Unit;
+use Dandelion\Console\Command\InitAllCommand;
+use Dandelion\Console\Command\InitCommand;
 use Dandelion\Console\Command\ReleaseAllCommand;
 use Dandelion\Console\Command\ReleaseCommand;
 use Dandelion\Console\Command\SplitAllCommand;
@@ -67,11 +69,13 @@ class DandelionServiceProviderTest extends Unit
         $this->assertEquals($this->expectedResourcesDir, $this->container->offsetGet('resources_dir'));
 
         $this->assertTrue($this->container->offsetExists('commands'));
-        $this->assertCount(5, $this->container->offsetGet('commands'));
-        $this->assertInstanceOf(SplitCommand::class, $this->container->offsetGet('commands')[0]);
-        $this->assertInstanceOf(SplitAllCommand::class, $this->container->offsetGet('commands')[1]);
-        $this->assertInstanceOf(ReleaseCommand::class, $this->container->offsetGet('commands')[2]);
-        $this->assertInstanceOf(ReleaseAllCommand::class, $this->container->offsetGet('commands')[3]);
-        $this->assertInstanceOf(ValidateCommand::class, $this->container->offsetGet('commands')[4]);
+        $this->assertCount(7, $this->container->offsetGet('commands'));
+        $this->assertInstanceOf(InitCommand::class, $this->container->offsetGet('commands')[0]);
+        $this->assertInstanceOf(InitAllCommand::class, $this->container->offsetGet('commands')[1]);
+        $this->assertInstanceOf(SplitCommand::class, $this->container->offsetGet('commands')[2]);
+        $this->assertInstanceOf(SplitAllCommand::class, $this->container->offsetGet('commands')[3]);
+        $this->assertInstanceOf(ReleaseCommand::class, $this->container->offsetGet('commands')[4]);
+        $this->assertInstanceOf(ReleaseAllCommand::class, $this->container->offsetGet('commands')[5]);
+        $this->assertInstanceOf(ValidateCommand::class, $this->container->offsetGet('commands')[6]);
     }
 }

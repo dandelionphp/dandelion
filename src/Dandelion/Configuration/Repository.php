@@ -14,7 +14,7 @@ class Repository
     /**
      * @var string
      */
-    protected $url;
+    protected $name;
 
     /**
      * @var string
@@ -44,19 +44,19 @@ class Repository
     /**
      * @return string
      */
-    public function getUrl(): string
+    public function getName(): string
     {
-        return $this->url;
+        return $this->name;
     }
 
     /**
-     * @param string $url
+     * @param string $name
      *
      * @return \Dandelion\Configuration\Repository
      */
-    public function setUrl(string $url): Repository
+    public function setName(string $name): Repository
     {
-        $this->url = $url;
+        $this->name = $name;
 
         return $this;
     }

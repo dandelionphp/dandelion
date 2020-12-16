@@ -6,6 +6,7 @@ namespace Dandelion\Console\Command;
 
 use Codeception\Test\Unit;
 use Dandelion\Operation\AbstractOperation;
+use Dandelion\Operation\SplitterInterface;
 use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -23,7 +24,7 @@ class SplitCommandTest extends Unit
     protected $outputMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\AbstractOperation
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\SplitterInterface
      */
     protected $splitterMock;
 
@@ -47,7 +48,7 @@ class SplitCommandTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->splitterMock = $this->getMockBuilder(AbstractOperation::class)
+        $this->splitterMock = $this->getMockBuilder(SplitterInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 

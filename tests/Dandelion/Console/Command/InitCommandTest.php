@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace Dandelion\Console\Command;
 
 use Codeception\Test\Unit;
-use Dandelion\Operation\AbstractOperation;
-use Dandelion\Operation\ReleaserInterface;
+use Dandelion\Operation\InitializerInterface;
 use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ReleaseCommandTest extends Unit
+class InitCommandTest extends Unit
 {
     /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\Symfony\Component\Console\Input\InputInterface
@@ -24,14 +23,14 @@ class ReleaseCommandTest extends Unit
     protected $outputMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\ReleaserInterface
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\InitializerInterface
      */
-    protected $releaserMock;
+    protected $initializerMock;
 
     /**
-     * @var \Dandelion\Console\Command\ReleaseCommand
+     * @var \Dandelion\Console\Command\InitCommand
      */
-    protected $releaseCommand;
+    protected $initCommand;
 
     /**
      * @return void
@@ -48,11 +47,11 @@ class ReleaseCommandTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->releaserMock = $this->getMockBuilder(ReleaserInterface::class)
+        $this->initializerMock = $this->getMockBuilder(InitializerInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->releaseCommand = new ReleaseCommand($this->releaserMock);
+        $this->initCommand = new InitCommand($this->initializerMock);
     }
 
     /**
@@ -60,7 +59,7 @@ class ReleaseCommandTest extends Unit
      */
     public function testGetName(): void
     {
-        $this->assertEquals(ReleaseCommand::NAME, $this->releaseCommand->getName());
+        static::assertEquals(InitCommand::NAME, $this->initCommand->getName());
     }
 
     /**
@@ -68,7 +67,7 @@ class ReleaseCommandTest extends Unit
      */
     public function testGetDescription(): void
     {
-        $this->assertEquals(ReleaseCommand::DESCRIPTION, $this->releaseCommand->getDescription());
+        static::assertEquals(InitCommand::DESCRIPTION, $this->initCommand->getDescription());
     }
 
     /**
@@ -78,49 +77,43 @@ class ReleaseCommandTest extends Unit
      */
     public function testRun(): void
     {
-        $branch = 'master';
         $repositoryName = 'package';
 
-        $this->inputMock->expects($this->atLeastOnce())
+        $this->inputMock->expects(static::atLeastOnce())
             ->method('getArgument')
-            ->withConsecutive(['repositoryName'], ['branch'])
-            ->willReturnOnConsecutiveCalls(
-                $repositoryName,
-                $branch
-            );
+            ->withConsecutive(['repositoryName'])
+            ->willReturnOnConsecutiveCalls($repositoryName);
 
-        $this->releaserMock->expects($this->atLeastOnce())
+        $this->initializerMock->expects(static::atLeastOnce())
             ->method('executeForSingleRepository')
-            ->with($repositoryName, $branch);
+            ->with($repositoryName);
 
-        $this->assertEquals(0, $this->releaseCommand->run($this->inputMock, $this->outputMock));
+        static::assertEquals(0, $this->initCommand->run($this->inputMock, $this->outputMock));
     }
 
     /**
      * @return void
+     *
+     * @throws \Exception
      */
     public function testRunWithInvalidArgument(): void
     {
-        $branch = 1;
-        $repositoryName = 'package';
+        $repositoryName = 1;
 
-        $this->inputMock->expects($this->atLeastOnce())
+        $this->inputMock->expects(static::atLeastOnce())
             ->method('getArgument')
-            ->withConsecutive(['repositoryName'], ['branch'])
-            ->willReturnOnConsecutiveCalls(
-                $repositoryName,
-                $branch
-            );
+            ->withConsecutive(['repositoryName'])
+            ->willReturnOnConsecutiveCalls($repositoryName);
 
-        $this->releaserMock->expects($this->never())
+        $this->initializerMock->expects(static::never())
             ->method('executeForSingleRepository');
 
         try {
-            $this->releaseCommand->run($this->inputMock, $this->outputMock);
+            $this->initCommand->run($this->inputMock, $this->outputMock);
         } catch (Exception $e) {
             return;
         }
 
-        $this->fail();
+        static::fail();
     }
 }

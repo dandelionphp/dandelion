@@ -13,10 +13,13 @@ use Dandelion\Operation\Result\MessageFactoryInterface;
 use Dandelion\Process\ProcessPoolFactoryInterface;
 use Dandelion\VersionControl\GitInterface;
 
-use function getenv;
+use Dandelion\VersionControl\Platform\PlatformFactoryInterface;
+
+use Dandelion\VersionControl\Platform\PlatformInterface;
+
 use function sprintf;
 
-class Releaser extends AbstractOperation
+class Releaser extends AbstractOperation implements ReleaserInterface
 {
     /**
      * @var \Dandelion\Filesystem\FilesystemInterface
@@ -34,6 +37,7 @@ class Releaser extends AbstractOperation
      * @param \Dandelion\Process\ProcessPoolFactoryInterface $processPoolFactory
      * @param \Dandelion\Operation\ResultFactoryInterface $resultFactory
      * @param \Dandelion\Operation\Result\MessageFactoryInterface $messageFactory
+     * @param \Dandelion\VersionControl\Platform\PlatformFactoryInterface $platformFactory
      * @param \Dandelion\VersionControl\GitInterface $git
      */
     public function __construct(
@@ -42,9 +46,16 @@ class Releaser extends AbstractOperation
         ProcessPoolFactoryInterface $processPoolFactory,
         ResultFactoryInterface $resultFactory,
         MessageFactoryInterface $messageFactory,
+        PlatformFactoryInterface $platformFactory,
         GitInterface $git
     ) {
-        parent::__construct($configurationLoader, $processPoolFactory, $resultFactory, $messageFactory);
+        parent::__construct(
+            $configurationLoader,
+            $processPoolFactory,
+            $resultFactory,
+            $messageFactory,
+            $platformFactory
+        );
         $this->filesystem = $filesystem;
         $this->git = $git;
     }
@@ -53,14 +64,14 @@ class Releaser extends AbstractOperation
      * @param string $repositoryName
      * @param string $branch
      *
-     * @return \Dandelion\Operation\AbstractOperation
+     * @return \Dandelion\Operation\ReleaserInterface
      *
      * @throws \Dandelion\Exception\RepositoryNotFoundException
      */
     public function executeForSingleRepository(
         string $repositoryName,
         string $branch
-    ): AbstractOperation {
+    ): ReleaserInterface {
         $configuration = $this->configurationLoader->load();
         $repositories = $configuration->getRepositories();
 
@@ -76,7 +87,9 @@ class Releaser extends AbstractOperation
         $currentWorkingDirectory = $this->filesystem->getCurrentWorkingDirectory();
         $this->filesystem->changeDirectory($tempDirectory);
 
-        $this->doExecuteForSingleRepository($branch, $repository);
+        $platform = $this->platformFactory->create($configuration->getVcs());
+
+        $this->doExecuteForSingleRepository($platform, $branch, $repository);
 
         $this->filesystem->changeDirectory($currentWorkingDirectory)
             ->removeDirectory($tempDirectory);
@@ -85,16 +98,20 @@ class Releaser extends AbstractOperation
     }
 
     /**
+     * @param \Dandelion\VersionControl\Platform\PlatformInterface $platform
      * @param string $branch
      * @param \Dandelion\Configuration\Repository $repository
      *
      * @return \Dandelion\Operation\AbstractOperation
      */
-    protected function doExecuteForSingleRepository(string $branch, Repository $repository): AbstractOperation
-    {
+    protected function doExecuteForSingleRepository(
+        PlatformInterface $platform,
+        string $branch,
+        Repository $repository
+    ): AbstractOperation {
         $version = $repository->getVersion();
 
-        $this->git->clone($repository->getUrl(), '.')
+        $this->git->clone($platform->getRepositoryUrl($repository), '.')
             ->checkout($branch);
 
         if ($this->git->describeClosestTag($version) !== null) {
@@ -108,18 +125,18 @@ class Releaser extends AbstractOperation
     }
 
     /**
-     * @param string $repositoryName
-     * @param string $branch
+     * @param string[] $commandArguments
      *
      * @return string[]
      */
-    protected function getCommand(string $repositoryName, string $branch): array
+    protected function getCommand(array $commandArguments): array
     {
-        return [
-            DANDELION_BINARY,
-            ReleaseCommand::NAME,
-            $repositoryName,
-            $branch
-        ];
+        return array_merge(
+            [
+                DANDELION_BINARY,
+                ReleaseCommand::NAME,
+            ],
+            $commandArguments
+        );
     }
 }

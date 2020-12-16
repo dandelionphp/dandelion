@@ -4,35 +4,31 @@ declare(strict_types=1);
 
 namespace Dandelion\Console\Command;
 
+use Dandelion\Operation\InitializerInterface;
 use Dandelion\Operation\ReleaserInterface;
 use Dandelion\Operation\Result\MessageInterface;
-use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use function is_string;
-use function sprintf;
-
-class ReleaseAllCommand extends Command
+class InitAllCommand extends Command
 {
-    public const NAME = 'release:all';
-    public const DESCRIPTION = 'Releases all packages.';
+    public const NAME = 'init:all';
+    public const DESCRIPTION = 'Init all split repository on vcs platform.';
 
     /**
-     * @var \Dandelion\Operation\ReleaserInterface
+     * @var \Dandelion\Operation\InitializerInterface
      */
-    protected $releaser;
+    protected $initializer;
 
     /**
-     * @param \Dandelion\Operation\ReleaserInterface $releaser
+     * @param \Dandelion\Operation\InitializerInterface $initializer
      */
     public function __construct(
-        ReleaserInterface $releaser
+        InitializerInterface $initializer
     ) {
         parent::__construct();
-        $this->releaser = $releaser;
+        $this->initializer = $initializer;
     }
 
     /**
@@ -44,8 +40,6 @@ class ReleaseAllCommand extends Command
 
         $this->setName(static::NAME);
         $this->setDescription(static::DESCRIPTION);
-
-        $this->addArgument('branch', InputArgument::REQUIRED, 'Branch');
     }
 
     /**
@@ -56,16 +50,10 @@ class ReleaseAllCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $branch = $input->getArgument('branch');
-
-        if (!is_string($branch)) {
-            throw new InvalidArgumentException('Unsupported type for given argument');
-        }
-
-        $output->writeln('Releasing monorepo packages:');
+        $output->writeln('Init split repositories:');
         $output->writeln('---------------------------------');
 
-        $result = $this->releaser->executeForAllRepositories([$branch]);
+        $result = $this->initializer->executeForAllRepositories([]);
 
         foreach ($result->getMessages() as $message) {
             $symbol = $message->getType() === MessageInterface::TYPE_INFO ? '<fg=green>✔</>' : '<fg=red>✗</>';

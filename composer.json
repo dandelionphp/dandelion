@@ -12,20 +12,21 @@
   ],
   "require": {
     "php": ">=7.3",
-    "ext-json": "*",
     "ext-curl": "*",
+    "ext-json": "*",
     "ext-phar": "*",
     "ext-sysvsem": "*",
-    "pimple/pimple": "~3.3.0",
+    "guzzlehttp/guzzle": "~7.2.0",
     "phpdocumentor/reflection-docblock": "~5.1.0",
+    "pimple/pimple": "~3.3.0",
+    "swaggest/json-schema": "~0.12.28",
     "symfony/console": "~5.0.4",
     "symfony/finder": "~5.0.4",
     "symfony/lock": "~5.0.4",
     "symfony/process": "~5.0.4",
     "symfony/property-access": "~5.0.4",
     "symfony/property-info": "~5.0.4",
-    "symfony/serializer": "~5.0.4",
-    "swaggest/json-schema": "~0.12.28"
+    "symfony/serializer": "~5.0.4"
   },
   "require-dev": {
     "codeception/codeception": "^4.1",

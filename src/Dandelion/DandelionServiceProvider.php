@@ -7,12 +7,15 @@ namespace Dandelion;
 use Dandelion\Configuration\ConfigurationFinder;
 use Dandelion\Configuration\ConfigurationLoader;
 use Dandelion\Configuration\ConfigurationValidator;
+use Dandelion\Console\Command\InitAllCommand;
+use Dandelion\Console\Command\InitCommand;
 use Dandelion\Console\Command\ReleaseAllCommand;
 use Dandelion\Console\Command\ReleaseCommand;
 use Dandelion\Console\Command\SplitAllCommand;
 use Dandelion\Console\Command\SplitCommand;
 use Dandelion\Console\Command\ValidateCommand;
 use Dandelion\Filesystem\Filesystem;
+use Dandelion\Operation\Initializer;
 use Dandelion\Operation\Releaser;
 use Dandelion\Operation\Result\MessageFactory;
 use Dandelion\Operation\ResultFactory;
@@ -20,7 +23,9 @@ use Dandelion\Operation\Splitter;
 use Dandelion\Process\ProcessFactory;
 use Dandelion\Process\ProcessPoolFactory;
 use Dandelion\VersionControl\Git;
+use Dandelion\VersionControl\Platform\GithubFactory;
 use Dandelion\VersionControl\SplitshLite;
+use GuzzleHttp\Client;
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 use Swaggest\JsonSchema\Schema;
@@ -56,8 +61,10 @@ class DandelionServiceProvider implements ServiceProviderInterface
         $container = $this->registerProcessPoolFactory($container);
         $container = $this->registerResultFactory($container);
         $container = $this->registerMessageFactory($container);
+        $container = $this->registerPlatformFactory($container);
         $container = $this->registerGit($container);
         $container = $this->registerSplitshLite($container);
+        $container = $this->registerInitializer($container);
         $container = $this->registerSplitter($container);
         $container = $this->registerReleaser($container);
         $container = $this->registerConfigurationValidator($container);
@@ -96,6 +103,8 @@ class DandelionServiceProvider implements ServiceProviderInterface
 
         $container->offsetSet('commands', static function (Container $container) use ($self) {
             return [
+                $self->createInitCommand($container),
+                $self->createInitAllCommand($container),
                 $self->createSplitCommand($container),
                 $self->createSplitAllCommand($container),
                 $self->createReleaseCommand($container),
@@ -105,6 +114,26 @@ class DandelionServiceProvider implements ServiceProviderInterface
         });
 
         return $container;
+    }
+
+    /**
+     * @param \Pimple\Container $container
+     *
+     * @return \Dandelion\Console\Command\InitCommand
+     */
+    protected function createInitCommand(Container $container): InitCommand
+    {
+        return new InitCommand($container->offsetGet('initializer'));
+    }
+
+    /**
+     * @param \Pimple\Container $container
+     *
+     * @return \Dandelion\Console\Command\InitAllCommand
+     */
+    protected function createInitAllCommand(Container $container): InitAllCommand
+    {
+        return new InitAllCommand($container->offsetGet('initializer'));
     }
 
     /**
@@ -132,6 +161,26 @@ class DandelionServiceProvider implements ServiceProviderInterface
      *
      * @return \Pimple\Container
      */
+    protected function registerInitializer(Container $container): Container
+    {
+        $container->offsetSet('initializer', static function (Container $container) {
+            return new Initializer(
+                $container->offsetGet('configuration_loader'),
+                $container->offsetGet('process_pool_factory'),
+                $container->offsetGet('result_factory'),
+                $container->offsetGet('message_factory'),
+                $container->offsetGet('platform_factory')
+            );
+        });
+
+        return $container;
+    }
+
+    /**
+     * @param \Pimple\Container $container
+     *
+     * @return \Pimple\Container
+     */
     protected function registerSplitter(Container $container): Container
     {
         $container->offsetSet('splitter', static function (Container $container) {
@@ -140,6 +189,7 @@ class DandelionServiceProvider implements ServiceProviderInterface
                 $container->offsetGet('process_pool_factory'),
                 $container->offsetGet('result_factory'),
                 $container->offsetGet('message_factory'),
+                $container->offsetGet('platform_factory'),
                 $container->offsetGet('git'),
                 $container->offsetGet('splitsh_lite'),
                 $container->offsetGet('lock_factory')
@@ -244,6 +294,22 @@ class DandelionServiceProvider implements ServiceProviderInterface
     {
         $container->offsetSet('message_factory', static function () {
             return new MessageFactory();
+        });
+
+        return $container;
+    }
+
+    /**
+     * @param \Pimple\Container $container
+     *
+     * @return \Pimple\Container
+     */
+    protected function registerPlatformFactory(Container $container): Container
+    {
+        $container->offsetSet('platform_factory', static function () {
+            return new GithubFactory(
+                new Client()
+            );
         });
 
         return $container;
@@ -384,6 +450,7 @@ class DandelionServiceProvider implements ServiceProviderInterface
                 $container->offsetGet('process_pool_factory'),
                 $container->offsetGet('result_factory'),
                 $container->offsetGet('message_factory'),
+                $container->offsetGet('platform_factory'),
                 $container->offsetGet('git')
             );
         });

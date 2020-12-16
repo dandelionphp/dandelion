@@ -5,17 +5,15 @@ declare(strict_types=1);
 namespace Dandelion\Console\Command;
 
 use Codeception\Test\Unit;
-use Dandelion\Operation\AbstractOperation;
+use Dandelion\Operation\InitializerInterface;
 use Dandelion\Operation\Result\MessageInterface;
 use Dandelion\Operation\ResultInterface;
-use Dandelion\Operation\SplitterInterface;
-use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function sprintf;
 
-class SplitAllCommandTest extends Unit
+class InitAllCommandTest extends Unit
 {
     /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\Symfony\Component\Console\Input\InputInterface
@@ -38,14 +36,14 @@ class SplitAllCommandTest extends Unit
     protected $messageMocks;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\SplitterInterface
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\InitializerInterface
      */
-    protected $splitterMock;
+    protected $initializerMock;
 
     /**
-     * @var \Dandelion\Console\Command\SplitAllCommand
+     * @var \Dandelion\Console\Command\InitAllCommand
      */
-    protected $splitAllCommand;
+    protected $initAllCommand;
 
     /**
      * @return void
@@ -72,11 +70,11 @@ class SplitAllCommandTest extends Unit
                 ->getMock()
         ];
 
-        $this->splitterMock = $this->getMockBuilder(SplitterInterface::class)
+        $this->initializerMock = $this->getMockBuilder(InitializerInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->splitAllCommand = new SplitAllCommand($this->splitterMock);
+        $this->initAllCommand = new InitAllCommand($this->initializerMock);
     }
 
     /**
@@ -84,7 +82,7 @@ class SplitAllCommandTest extends Unit
      */
     public function testGetName(): void
     {
-        $this->assertEquals(SplitAllCommand::NAME, $this->splitAllCommand->getName());
+        static::assertEquals(InitAllCommand::NAME, $this->initAllCommand->getName());
     }
 
     /**
@@ -92,7 +90,7 @@ class SplitAllCommandTest extends Unit
      */
     public function testGetDescription(): void
     {
-        $this->assertEquals(SplitAllCommand::DESCRIPTION, $this->splitAllCommand->getDescription());
+        static::assertEquals(InitAllCommand::DESCRIPTION, $this->initAllCommand->getDescription());
     }
 
     /**
@@ -102,72 +100,40 @@ class SplitAllCommandTest extends Unit
      */
     public function testRun(): void
     {
-        $branch = 'master';
         $messageText = 'Lorem ipsum';
 
-        $this->inputMock->expects($this->atLeastOnce())
-            ->method('getArgument')
-            ->with('branch')
-            ->willReturn($branch);
-
-        $this->splitterMock->expects($this->atLeastOnce())
+        $this->initializerMock->expects(static::atLeastOnce())
             ->method('executeForAllRepositories')
             ->with(
-                $this->callback(
-                    static function(array $arguments) use ($branch) {
-                        return count($arguments) === 1 && $arguments[0] === $branch;
+                static::callback(
+                    static function(array $arguments) {
+                        return count($arguments) === 0;
                     }
                 )
             )->willReturn($this->resultMock);
 
-        $this->resultMock->expects($this->atLeastOnce())
+        $this->resultMock->expects(static::atLeastOnce())
             ->method('getMessages')
             ->willReturn($this->messageMocks);
 
-        $this->messageMocks[0]->expects($this->atLeastOnce())
+        $this->messageMocks[0]->expects(static::atLeastOnce())
             ->method('getType')
             ->willReturn(MessageInterface::TYPE_INFO);
 
-        $this->messageMocks[0]->expects($this->atLeastOnce())
+        $this->messageMocks[0]->expects(static::atLeastOnce())
             ->method('getText')
             ->willReturn($messageText);
 
-        $this->outputMock->expects($this->atLeastOnce())
+        $this->outputMock->expects(static::atLeastOnce())
             ->method('writeln')
             ->withConsecutive(
-                ['Splitting monorepo packages:'],
+                ['Init split repositories:'],
                 ['---------------------------------'],
                 [sprintf('<fg=green>✔</> %s', $messageText)],
                 ['---------------------------------'],
                 ['Finished']
             );
 
-        $this->assertEquals(0, $this->splitAllCommand->run($this->inputMock, $this->outputMock));
-    }
-
-    /**
-     * @return void
-     *
-     * @throws \Exception
-     */
-    public function testRunWithInvalidArgument(): void
-    {
-        $branch = 1;
-
-        $this->inputMock->expects($this->atLeastOnce())
-            ->method('getArgument')
-            ->with('branch')
-            ->willReturn($branch);
-
-        $this->splitterMock->expects($this->never())
-            ->method('executeForAllRepositories');
-
-        try {
-            $this->splitAllCommand->run($this->inputMock, $this->outputMock);
-        } catch (Exception $e) {
-            return;
-        }
-
-        $this->fail();
+        static::assertEquals(0, $this->initAllCommand->run($this->inputMock, $this->outputMock));
     }
 }

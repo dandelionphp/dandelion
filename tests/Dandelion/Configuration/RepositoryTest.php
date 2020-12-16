@@ -41,8 +41,8 @@ class RepositoryTest extends Unit
     {
         $url = 'https:///path/to/x';
 
-        $this->assertEquals($this->repository, $this->repository->setUrl($url));
-        $this->assertEquals($url, $this->repository->getUrl());
+        $this->assertEquals($this->repository, $this->repository->setName($url));
+        $this->assertEquals($url, $this->repository->getName());
     }
 
     /**

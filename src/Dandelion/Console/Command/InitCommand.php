@@ -4,33 +4,31 @@ declare(strict_types=1);
 
 namespace Dandelion\Console\Command;
 
-use Dandelion\Operation\SplitterInterface;
+use Dandelion\Operation\InitializerInterface;
 use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use function is_string;
-
-class SplitCommand extends Command
+class InitCommand extends Command
 {
-    public const NAME = 'split';
-    public const DESCRIPTION = 'Splits package from mono to split.';
+    public const NAME = 'init';
+    public const DESCRIPTION = 'Init split repository on vcs platform.';
 
     /**
-     * @var \Dandelion\Operation\SplitterInterface
+     * @var \Dandelion\Operation\InitializerInterface
      */
-    protected $splitter;
+    protected $initializer;
 
     /**
-     * @param \Dandelion\Operation\SplitterInterface $splitter
+     * @param \Dandelion\Operation\InitializerInterface $initializer
      */
     public function __construct(
-        SplitterInterface $splitter
+        InitializerInterface $initializer
     ) {
         parent::__construct();
-        $this->splitter = $splitter;
+        $this->initializer = $initializer;
     }
 
     /**
@@ -44,7 +42,6 @@ class SplitCommand extends Command
         $this->setDescription(static::DESCRIPTION);
 
         $this->addArgument('repositoryName', InputArgument::REQUIRED, 'Name of split repository');
-        $this->addArgument('branch', InputArgument::REQUIRED, 'Branch');
     }
 
     /**
@@ -56,13 +53,12 @@ class SplitCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $repositoryName = $input->getArgument('repositoryName');
-        $branch = $input->getArgument('branch');
 
-        if (!is_string($repositoryName) || !is_string($branch)) {
-            throw new InvalidArgumentException('Unsupported type for given arguments');
+        if (!is_string($repositoryName)) {
+            throw new InvalidArgumentException('Unsupported type for given argument');
         }
 
-        $this->splitter->executeForSingleRepository($repositoryName, $branch);
+        $this->initializer->executeForSingleRepository($repositoryName);
 
         return 0;
     }
