@@ -1,0 +1,15 @@
+name: CI
+
+on:
+  - pull_request
+
+jobs:
+  continous-integration:
+    env:
+      WORKDIR: /home/dandelion/app
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Run make target test
+        run: docker run --rm -v ${{ github.workspace }}:${{ env.WORKDIR }} -w ${{ env.WORKDIR }} --user=root dandelionphp/php:7.4-cli-alpine-dev /bin/sh -c "make test"

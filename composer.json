@@ -33,7 +33,6 @@
     "mikey179/vfsstream": "^1.6",
     "php-coveralls/php-coveralls": "^2.2",
     "phpmd/phpmd": "^2.8",
-    "phpro/grumphp-shim": "^0.18",
     "phpstan/phpstan": "^0.12",
     "roave/security-advisories": "dev-master as 1.0.0",
     "sebastian/phpcpd": "^5.0",

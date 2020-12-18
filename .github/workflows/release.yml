@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  release:
+    types: [created]
+
+env:
+  WORKDIR: /home/dandelion/app
+
+jobs:
+  continous-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Run make target test
+        run: docker run --rm -v ${{ github.workspace }}:${{ env.WORKDIR }} -w ${{ env.WORKDIR }} --user=root dandelionphp/php:7.4-cli-alpine-dev /bin/sh -c "make test"
+
+  release:
+    needs: [continous-integration]
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      IMAGE_TAG: ${{ github.event.release.tag_name }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build phar file
+        run: docker run --rm -v ${{ github.workspace }}:${{ env.WORKDIR }} -w ${{ env.WORKDIR }} --user=root dandelionphp/php:7.4-cli-alpine-dev /bin/sh -c "make bundle"
+      - name: Upload phar file binary
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+            upload_url: ${{ github.event.release.upload_url }}
+            asset_path: .bin/dandelion.phar
+            asset_name: dandelion.phar
+            asset_content_type: application/octet-stream
+      - name: Generate docker image with builded phar file
+        run: make docker-tag
+      - name: Push generated docker image
+        run: make docker-push
