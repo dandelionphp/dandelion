@@ -12,9 +12,7 @@ use Dandelion\Filesystem\FilesystemInterface;
 use Dandelion\Operation\Result\MessageFactoryInterface;
 use Dandelion\Process\ProcessPoolFactoryInterface;
 use Dandelion\VersionControl\GitInterface;
-
 use Dandelion\VersionControl\Platform\PlatformFactoryInterface;
-
 use Dandelion\VersionControl\Platform\PlatformInterface;
 
 use function sprintf;

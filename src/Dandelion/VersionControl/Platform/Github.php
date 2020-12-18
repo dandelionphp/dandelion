@@ -85,7 +85,8 @@ class Github implements PlatformInterface
                         static::FORMAT_DESCRIPTION,
                         ucwords($repository->getName(), '-')
                     )
-                ], static::SPLIT_REPOSITORY_DEFAULTS
+                ],
+                static::SPLIT_REPOSITORY_DEFAULTS
             )
         ]);
 
