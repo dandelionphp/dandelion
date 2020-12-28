@@ -10,29 +10,21 @@ use Dandelion\Configuration\Configuration;
 use Dandelion\Configuration\ConfigurationLoaderInterface;
 use Dandelion\Configuration\Repository;
 use Dandelion\Configuration\Vcs;
-use Dandelion\Console\Command\InitCommand;
-use Dandelion\Console\Command\SplitCommand;
+use Dandelion\Console\Command\SplitRepositoryInitCommand;
 use Dandelion\Operation\Result\MessageFactoryInterface;
 use Dandelion\Process\ProcessPoolFactoryInterface;
 use Dandelion\Process\ProcessPoolInterface;
-use Dandelion\VersionControl\GitInterface;
 use Dandelion\VersionControl\Platform\PlatformFactoryInterface;
 use Dandelion\VersionControl\Platform\PlatformInterface;
-use Dandelion\VersionControl\SplitshLiteInterface;
 use Exception;
 use Iterator;
 
-use Symfony\Component\Lock\LockFactory;
-use Symfony\Component\Lock\LockInterface;
-use function sha1;
-use function sprintf;
-
-class InitializerTest extends Unit
+class SplitRepositoryInitializerTest extends Unit
 {
     /**
-     * @var \Dandelion\Operation\Initializer
+     * @var \Dandelion\Operation\SplitRepositoryInitializer
      */
-    protected $initializer;
+    protected $splitRepositoryInitializer;
 
     /**
      * @var \Dandelion\Configuration\ConfigurationLoaderInterface|\PHPUnit\Framework\MockObject\MockObject
@@ -159,7 +151,7 @@ class InitializerTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->initializer = new Initializer(
+        $this->splitRepositoryInitializer = new SplitRepositoryInitializer(
             $this->configurationLoaderMock,
             $this->processPoolFactoryMock,
             $this->resultFactoryMock,
@@ -215,8 +207,8 @@ class InitializerTest extends Unit
             ->willReturn($this->platformMock);
 
         static::assertEquals(
-            $this->initializer,
-            $this->initializer->executeForSingleRepository($repositoryName)
+            $this->splitRepositoryInitializer,
+            $this->splitRepositoryInitializer->executeForSingleRepository($repositoryName)
         );
     }
 
@@ -265,8 +257,8 @@ class InitializerTest extends Unit
             ->method('initSplitRepository');
 
         static::assertEquals(
-            $this->initializer,
-            $this->initializer->executeForSingleRepository($repositoryName)
+            $this->splitRepositoryInitializer,
+            $this->splitRepositoryInitializer->executeForSingleRepository($repositoryName)
         );
     }
 
@@ -302,7 +294,7 @@ class InitializerTest extends Unit
             ->method('create');
 
         try {
-            $this->initializer->executeForSingleRepository($repositoryName);
+            $this->splitRepositoryInitializer->executeForSingleRepository($repositoryName);
         } catch (Exception $e) {
             return;
         }
@@ -356,7 +348,7 @@ class InitializerTest extends Unit
             ->method('addProcess')
             ->with([
                 DANDELION_BINARY,
-                InitCommand::NAME,
+                SplitRepositoryInitCommand::NAME,
                 $repositoryName
             ])->willReturn($this->processPoolMock);
 
@@ -366,7 +358,7 @@ class InitializerTest extends Unit
 
         static::assertEquals(
             $this->resultMock,
-            $this->initializer->executeForAllRepositories([])
+            $this->splitRepositoryInitializer->executeForAllRepositories([])
         );
     }
 }

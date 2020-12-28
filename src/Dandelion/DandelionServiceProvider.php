@@ -7,15 +7,15 @@ namespace Dandelion;
 use Dandelion\Configuration\ConfigurationFinder;
 use Dandelion\Configuration\ConfigurationLoader;
 use Dandelion\Configuration\ConfigurationValidator;
-use Dandelion\Console\Command\InitAllCommand;
-use Dandelion\Console\Command\InitCommand;
+use Dandelion\Console\Command\SplitRepositoryInitAllCommand;
+use Dandelion\Console\Command\SplitRepositoryInitCommand;
 use Dandelion\Console\Command\ReleaseAllCommand;
 use Dandelion\Console\Command\ReleaseCommand;
 use Dandelion\Console\Command\SplitAllCommand;
 use Dandelion\Console\Command\SplitCommand;
 use Dandelion\Console\Command\ValidateCommand;
 use Dandelion\Filesystem\Filesystem;
-use Dandelion\Operation\Initializer;
+use Dandelion\Operation\SplitRepositoryInitializer;
 use Dandelion\Operation\Releaser;
 use Dandelion\Operation\Result\MessageFactory;
 use Dandelion\Operation\ResultFactory;
@@ -64,7 +64,7 @@ class DandelionServiceProvider implements ServiceProviderInterface
         $container = $this->registerPlatformFactory($container);
         $container = $this->registerGit($container);
         $container = $this->registerSplitshLite($container);
-        $container = $this->registerInitializer($container);
+        $container = $this->registerSplitRepositoryInitializer($container);
         $container = $this->registerSplitter($container);
         $container = $this->registerReleaser($container);
         $container = $this->registerConfigurationValidator($container);
@@ -103,8 +103,8 @@ class DandelionServiceProvider implements ServiceProviderInterface
 
         $container->offsetSet('commands', static function (Container $container) use ($self) {
             return [
-                $self->createInitCommand($container),
-                $self->createInitAllCommand($container),
+                $self->createSplitRepositoryInitCommand($container),
+                $self->createSplitRepositoryInitAllCommand($container),
                 $self->createSplitCommand($container),
                 $self->createSplitAllCommand($container),
                 $self->createReleaseCommand($container),
@@ -119,21 +119,21 @@ class DandelionServiceProvider implements ServiceProviderInterface
     /**
      * @param \Pimple\Container $container
      *
-     * @return \Dandelion\Console\Command\InitCommand
+     * @return \Dandelion\Console\Command\SplitRepositoryInitCommand
      */
-    protected function createInitCommand(Container $container): InitCommand
+    protected function createSplitRepositoryInitCommand(Container $container): SplitRepositoryInitCommand
     {
-        return new InitCommand($container->offsetGet('initializer'));
+        return new SplitRepositoryInitCommand($container->offsetGet('split_repository_initializer'));
     }
 
     /**
      * @param \Pimple\Container $container
      *
-     * @return \Dandelion\Console\Command\InitAllCommand
+     * @return \Dandelion\Console\Command\SplitRepositoryInitAllCommand
      */
-    protected function createInitAllCommand(Container $container): InitAllCommand
+    protected function createSplitRepositoryInitAllCommand(Container $container): SplitRepositoryInitAllCommand
     {
-        return new InitAllCommand($container->offsetGet('initializer'));
+        return new SplitRepositoryInitAllCommand($container->offsetGet('split_repository_initializer'));
     }
 
     /**
@@ -161,10 +161,10 @@ class DandelionServiceProvider implements ServiceProviderInterface
      *
      * @return \Pimple\Container
      */
-    protected function registerInitializer(Container $container): Container
+    protected function registerSplitRepositoryInitializer(Container $container): Container
     {
-        $container->offsetSet('initializer', static function (Container $container) {
-            return new Initializer(
+        $container->offsetSet('split_repository_initializer', static function (Container $container) {
+            return new SplitRepositoryInitializer(
                 $container->offsetGet('configuration_loader'),
                 $container->offsetGet('process_pool_factory'),
                 $container->offsetGet('result_factory'),

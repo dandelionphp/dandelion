@@ -3,6 +3,7 @@
 namespace Dandelion\Configuration;
 
 use Codeception\Test\Unit;
+use Dandelion\Configuration\Vcs\Owner;
 
 class VcsTest extends Unit
 {
@@ -26,10 +27,12 @@ class VcsTest extends Unit
      */
     public function testSetAndGetOwner(): void
     {
-        $owner = 'foo';
+        $ownerMock = $this->getMockBuilder(Owner::class)
+            ->disableOriginalConstructor()
+            ->getMock();
 
-        static::assertEquals($this->vcs, $this->vcs->setOwner($owner));
-        static::assertEquals($owner, $this->vcs->getOwner());
+        static::assertEquals($this->vcs, $this->vcs->setOwner($ownerMock));
+        static::assertEquals($ownerMock, $this->vcs->getOwner());
     }
 
     /**

@@ -2,17 +2,17 @@
 
 namespace Dandelion\Operation;
 
-use Dandelion\Console\Command\InitCommand;
+use Dandelion\Console\Command\SplitRepositoryInitCommand;
 use Dandelion\Exception\RepositoryNotFoundException;
 
-class Initializer extends AbstractOperation implements InitializerInterface
+class SplitRepositoryInitializer extends AbstractOperation implements SplitRepositoryInitializerInterface
 {
     /**
      * @param string $repositoryName
      *
-     * @return \Dandelion\Operation\InitializerInterface
+     * @return \Dandelion\Operation\SplitRepositoryInitializerInterface
      */
-    public function executeForSingleRepository(string $repositoryName): InitializerInterface
+    public function executeForSingleRepository(string $repositoryName): SplitRepositoryInitializerInterface
     {
         $configuration = $this->configurationLoader->load();
         $repositories = $configuration->getRepositories();
@@ -43,7 +43,7 @@ class Initializer extends AbstractOperation implements InitializerInterface
         return array_merge(
             [
                 DANDELION_BINARY,
-                InitCommand::NAME,
+                SplitRepositoryInitCommand::NAME,
             ],
             $commandArguments
         );

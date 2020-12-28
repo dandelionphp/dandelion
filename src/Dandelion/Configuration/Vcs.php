@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Dandelion\Configuration;
 
+use Dandelion\Configuration\Vcs\Owner;
+
 class Vcs
 {
     /**
-     * @var string
+     * @var \Dandelion\Configuration\Vcs\Owner
      */
     protected $owner;
 
@@ -17,19 +19,19 @@ class Vcs
     protected $token;
 
     /**
-     * @return string
+     * @return \Dandelion\Configuration\Vcs\Owner
      */
-    public function getOwner(): string
+    public function getOwner(): Owner
     {
         return $this->owner;
     }
 
     /**
-     * @param string $owner
+     * @param \Dandelion\Configuration\Vcs\Owner $owner
      *
      * @return \Dandelion\Configuration\Vcs
      */
-    public function setOwner(string $owner): Vcs
+    public function setOwner(Owner $owner): Vcs
     {
         $this->owner = $owner;
 

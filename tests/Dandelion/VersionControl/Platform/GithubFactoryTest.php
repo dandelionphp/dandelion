@@ -4,7 +4,6 @@ namespace Dandelion\VersionControl\Platform;
 
 use Codeception\Test\Unit;
 use Dandelion\Configuration\Vcs;
-use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface as HttpClientInterface;
 
 class GithubFactoryTest extends Unit

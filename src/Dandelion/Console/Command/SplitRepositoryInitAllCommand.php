@@ -4,28 +4,28 @@ declare(strict_types=1);
 
 namespace Dandelion\Console\Command;
 
-use Dandelion\Operation\InitializerInterface;
+use Dandelion\Operation\SplitRepositoryInitializerInterface;
 use Dandelion\Operation\ReleaserInterface;
 use Dandelion\Operation\Result\MessageInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class InitAllCommand extends Command
+class SplitRepositoryInitAllCommand extends Command
 {
-    public const NAME = 'init:all';
+    public const NAME = 'split-repository:init:all';
     public const DESCRIPTION = 'Init all split repository on vcs platform.';
 
     /**
-     * @var \Dandelion\Operation\InitializerInterface
+     * @var \Dandelion\Operation\SplitRepositoryInitializerInterface
      */
     protected $initializer;
 
     /**
-     * @param \Dandelion\Operation\InitializerInterface $initializer
+     * @param \Dandelion\Operation\SplitRepositoryInitializerInterface $initializer
      */
     public function __construct(
-        InitializerInterface $initializer
+        SplitRepositoryInitializerInterface $initializer
     ) {
         parent::__construct();
         $this->initializer = $initializer;

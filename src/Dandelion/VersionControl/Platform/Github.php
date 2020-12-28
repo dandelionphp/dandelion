@@ -11,6 +11,7 @@ use GuzzleHttp\ClientInterface as HttpClientInterface;
 
 use function array_merge;
 use function sprintf;
+use function str_replace;
 use function ucwords;
 
 class Github implements PlatformInterface
@@ -61,7 +62,7 @@ class Github implements PlatformInterface
         return sprintf(
             'https://%s@github.com/%s/%s.git',
             $this->vcs->getToken(),
-            $this->vcs->getOwner(),
+            $this->vcs->getOwner()->getName(),
             $repository->getName()
         );
     }
@@ -72,7 +73,13 @@ class Github implements PlatformInterface
      */
     public function initSplitRepository(Repository $repository): PlatformInterface
     {
-        $url = sprintf('https://api.github.com/orgs/%s/repos', $this->vcs->getOwner());
+        $owner = $this->vcs->getOwner();
+
+        $url = sprintf('https://api.github.com/orgs/%s/repos', $owner->getName());
+
+        if ($owner->getType() !== 'organisation') {
+            $url = 'https://api.github.com/user/repos';
+        }
 
         $response = $this->httpClient->request('POST', $url, [
             'headers' => [
@@ -83,18 +90,18 @@ class Github implements PlatformInterface
                     'name' => $repository->getName(),
                     'description' => sprintf(
                         static::FORMAT_DESCRIPTION,
-                        ucwords($repository->getName(), '-')
+                        str_replace('-', '', ucwords($repository->getName(), '-'))
                     )
                 ],
                 static::SPLIT_REPOSITORY_DEFAULTS
-            )
+            ), 'http_errors' => false
         ]);
 
         if ($response->getStatusCode() !== 201) {
             throw new SplitRepositoryNotInitializedException(
                 sprintf(
                     'Could not initialize split repository "%s/%s".',
-                    $this->vcs->getOwner(),
+                    $owner->getName(),
                     $repository->getName()
                 )
             );
@@ -112,7 +119,7 @@ class Github implements PlatformInterface
     {
         $url = sprintf(
             'https://api.github.com/repos/%s/%s',
-            $this->vcs->getOwner(),
+            $this->vcs->getOwner()->getName(),
             $repository->getName()
         );
 
@@ -120,7 +127,8 @@ class Github implements PlatformInterface
             'headers' => [
                 'Accept' => 'application/vnd.github.v3+json',
                 'Authorization' => sprintf('token %s', $this->vcs->getToken())
-            ]
+            ],
+            'http_errors' => false
         ]);
 
         return $response->getStatusCode() === 200;

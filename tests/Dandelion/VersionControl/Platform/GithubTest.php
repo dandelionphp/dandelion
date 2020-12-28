@@ -5,6 +5,8 @@ namespace Dandelion\VersionControl\Platform;
 use Codeception\Test\Unit;
 use Dandelion\Configuration\Repository;
 use Dandelion\Configuration\Vcs;
+use Dandelion\Configuration\Vcs\Owner;
+use Exception;
 use GuzzleHttp\ClientInterface as HttpClientInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -19,6 +21,12 @@ class GithubTest extends Unit
      * @var \Dandelion\Configuration\Vcs|\PHPUnit\Framework\MockObject\MockObject
      */
     protected $vcsMock;
+
+    /**
+     * @var \Dandelion\Configuration\Owner|\PHPUnit\Framework\MockObject\MockObject
+     */
+    protected $ownerMock;
+
 
     /**
      * @var \Dandelion\Configuration\Repository|\PHPUnit\Framework\MockObject\MockObject
@@ -50,6 +58,10 @@ class GithubTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
+        $this->ownerMock = $this->getMockBuilder(Owner::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
         $this->repositoryMock = $this->getMockBuilder(Repository::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -71,8 +83,8 @@ class GithubTest extends Unit
     {
         $token = 'foo-token-123';
         $repositoryName = 'bar';
-        $owner = 'foo';
-        $expectedRepositoryUrl = sprintf('https://%s@github.com/%s/%s.git', $token, $owner, $repositoryName);
+        $ownerName = 'foo';
+        $expectedRepositoryUrl = sprintf('https://%s@github.com/%s/%s.git', $token, $ownerName, $repositoryName);
 
         $this->vcsMock->expects(static::atLeastOnce())
             ->method('getToken')
@@ -80,7 +92,11 @@ class GithubTest extends Unit
 
         $this->vcsMock->expects(static::atLeastOnce())
             ->method('getOwner')
-            ->willReturn('foo');
+            ->willReturn($this->ownerMock);
+
+        $this->ownerMock->expects(static::atLeastOnce())
+            ->method('getName')
+            ->willReturn($ownerName);
 
         $this->repositoryMock->expects(static::atLeastOnce())
             ->method('getName')
@@ -97,19 +113,23 @@ class GithubTest extends Unit
      */
     public function testExistsSplitRepository(): void
     {
-        $owner = 'foo';
+        $ownerName = 'foo';
         $repositoryName = 'bar';
         $token = 'foo-token-123';
 
         $url = sprintf(
             'https://api.github.com/repos/%s/%s',
-            $owner,
+            $ownerName,
             $repositoryName
         );
 
         $this->vcsMock->expects(static::atLeastOnce())
             ->method('getOwner')
-            ->willReturn($owner);
+            ->willReturn($this->ownerMock);
+
+        $this->ownerMock->expects(static::atLeastOnce())
+            ->method('getName')
+            ->willReturn($ownerName);
 
         $this->repositoryMock->expects(static::atLeastOnce())
             ->method('getName')
@@ -122,7 +142,7 @@ class GithubTest extends Unit
         $this->httpClientMock->expects(static::atLeastOnce())
             ->method('request')
             ->with('GET', $url, static::callback(
-                static function(array $options) use ($token) {
+                static function (array $options) use ($token) {
                     return isset($options['headers']['Accept'], $options['headers']['Authorization'])
                         && $options['headers']['Accept'] === 'application/vnd.github.v3+json'
                         && $options['headers']['Authorization'] === sprintf('token %s', $token);
@@ -143,18 +163,27 @@ class GithubTest extends Unit
      */
     public function testInitSplitRepository(): void
     {
-        $owner = 'foo';
+        $ownerName = 'foo';
+        $ownerType = 'organisation';
         $repositoryName = 'bar';
         $token = 'foo-token-123';
 
         $url = sprintf(
             'https://api.github.com/orgs/%s/repos',
-            $owner
+            $ownerName
         );
 
         $this->vcsMock->expects(static::atLeastOnce())
             ->method('getOwner')
-            ->willReturn($owner);
+            ->willReturn($this->ownerMock);
+
+        $this->ownerMock->expects(static::atLeastOnce())
+            ->method('getType')
+            ->willReturn($ownerType);
+
+        $this->ownerMock->expects(static::atLeastOnce())
+            ->method('getName')
+            ->willReturn($ownerName);
 
         $this->repositoryMock->expects(static::atLeastOnce())
             ->method('getName')
@@ -167,13 +196,13 @@ class GithubTest extends Unit
         $this->httpClientMock->expects(static::atLeastOnce())
             ->method('request')
             ->with('POST', $url, static::callback(
-                static function(array $options) use ($token, $repositoryName) {
+                static function (array $options) use ($token, $repositoryName) {
                     return isset(
-                            $options['headers']['Accept'],
-                            $options['headers']['Authorization'],
-                            $options['json']['name'],
-                            $options['json']['description']
-                        )
+                        $options['headers']['Accept'],
+                        $options['headers']['Authorization'],
+                        $options['json']['name'],
+                        $options['json']['description']
+                    )
                         && $options['headers']['Accept'] === 'application/vnd.github.v3+json'
                         && $options['headers']['Authorization'] === sprintf('token %s', $token)
                         && $options['json']['name'] === $repositoryName
@@ -199,18 +228,27 @@ class GithubTest extends Unit
      */
     public function testInitSplitRepositoryWithErrors(): void
     {
-        $owner = 'foo';
+        $ownerName = 'foo';
+        $ownerType = 'organisation';
         $repositoryName = 'bar';
         $token = 'foo-token-123';
 
         $url = sprintf(
             'https://api.github.com/orgs/%s/repos',
-            $owner
+            $ownerName
         );
 
         $this->vcsMock->expects(static::atLeastOnce())
             ->method('getOwner')
-            ->willReturn($owner);
+            ->willReturn($this->ownerMock);
+
+        $this->ownerMock->expects(static::atLeastOnce())
+            ->method('getType')
+            ->willReturn($ownerType);
+
+        $this->ownerMock->expects(static::atLeastOnce())
+            ->method('getName')
+            ->willReturn($ownerName);
 
         $this->repositoryMock->expects(static::atLeastOnce())
             ->method('getName')
@@ -223,13 +261,13 @@ class GithubTest extends Unit
         $this->httpClientMock->expects(static::atLeastOnce())
             ->method('request')
             ->with('POST', $url, static::callback(
-                static function(array $options) use ($token, $repositoryName) {
+                static function (array $options) use ($token, $repositoryName) {
                     return isset(
-                            $options['headers']['Accept'],
-                            $options['headers']['Authorization'],
-                            $options['json']['name'],
-                            $options['json']['description']
-                        )
+                        $options['headers']['Accept'],
+                        $options['headers']['Authorization'],
+                        $options['json']['name'],
+                        $options['json']['description']
+                    )
                         && $options['headers']['Accept'] === 'application/vnd.github.v3+json'
                         && $options['headers']['Authorization'] === sprintf('token %s', $token)
                         && $options['json']['name'] === $repositoryName
@@ -247,7 +285,70 @@ class GithubTest extends Unit
         try {
             $this->github->initSplitRepository($this->repositoryMock);
             self::fail();
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function testInitSplitRepositoryForAuthenticatedUser(): void
+    {
+        $ownerName = 'foo';
+        $ownerType = 'authenticated-user';
+        $repositoryName = 'bar';
+        $token = 'foo-token-123';
+
+        $url = sprintf('https://api.github.com/user/repos');
+
+        $this->vcsMock->expects(static::atLeastOnce())
+            ->method('getOwner')
+            ->willReturn($this->ownerMock);
+
+        $this->ownerMock->expects(static::atLeastOnce())
+            ->method('getType')
+            ->willReturn($ownerType);
+
+        $this->ownerMock->expects(static::atLeastOnce())
+            ->method('getName')
+            ->willReturn($ownerName);
+
+        $this->repositoryMock->expects(static::atLeastOnce())
+            ->method('getName')
+            ->willReturn($repositoryName);
+
+        $this->vcsMock->expects(static::atLeastOnce())
+            ->method('getToken')
+            ->willReturn($token);
+
+        $this->httpClientMock->expects(static::atLeastOnce())
+            ->method('request')
+            ->with('POST', $url, static::callback(
+                static function (array $options) use ($token, $repositoryName) {
+                    return isset(
+                        $options['headers']['Accept'],
+                        $options['headers']['Authorization'],
+                        $options['json']['name'],
+                        $options['json']['description']
+                    )
+                        && $options['headers']['Accept'] === 'application/vnd.github.v3+json'
+                        && $options['headers']['Authorization'] === sprintf('token %s', $token)
+                        && $options['json']['name'] === $repositoryName
+                        && $options['json']['description'] === sprintf(
+                            Github::FORMAT_DESCRIPTION,
+                            ucwords($repositoryName, '-')
+                        );
+                }
+            ))->willReturn($this->responseMock);
+
+        $this->responseMock->expects(static::atLeastOnce())
+            ->method('getStatusCode')
+            ->willReturn(500);
+
+        try {
+            $this->github->initSplitRepository($this->repositoryMock);
+            self::fail();
+        } catch (Exception $exception) {
         }
     }
 }

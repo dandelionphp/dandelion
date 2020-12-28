@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Dandelion\Console\Command;
 
 use Codeception\Test\Unit;
-use Dandelion\Operation\InitializerInterface;
+use Dandelion\Operation\SplitRepositoryInitializerInterface;
 use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class InitCommandTest extends Unit
+class SplitRepositoryInitCommandTest extends Unit
 {
     /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\Symfony\Component\Console\Input\InputInterface
@@ -23,14 +23,14 @@ class InitCommandTest extends Unit
     protected $outputMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\InitializerInterface
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\SplitRepositoryInitializerInterface
      */
     protected $initializerMock;
 
     /**
-     * @var \Dandelion\Console\Command\InitCommand
+     * @var \Dandelion\Console\Command\SplitRepositoryInitCommand
      */
-    protected $initCommand;
+    protected $splitRepositoryInitCommand;
 
     /**
      * @return void
@@ -47,11 +47,11 @@ class InitCommandTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->initializerMock = $this->getMockBuilder(InitializerInterface::class)
+        $this->initializerMock = $this->getMockBuilder(SplitRepositoryInitializerInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->initCommand = new InitCommand($this->initializerMock);
+        $this->splitRepositoryInitCommand = new SplitRepositoryInitCommand($this->initializerMock);
     }
 
     /**
@@ -59,7 +59,7 @@ class InitCommandTest extends Unit
      */
     public function testGetName(): void
     {
-        static::assertEquals(InitCommand::NAME, $this->initCommand->getName());
+        static::assertEquals(SplitRepositoryInitCommand::NAME, $this->splitRepositoryInitCommand->getName());
     }
 
     /**
@@ -67,7 +67,10 @@ class InitCommandTest extends Unit
      */
     public function testGetDescription(): void
     {
-        static::assertEquals(InitCommand::DESCRIPTION, $this->initCommand->getDescription());
+        static::assertEquals(
+            SplitRepositoryInitCommand::DESCRIPTION,
+            $this->splitRepositoryInitCommand->getDescription()
+        );
     }
 
     /**
@@ -88,7 +91,7 @@ class InitCommandTest extends Unit
             ->method('executeForSingleRepository')
             ->with($repositoryName);
 
-        static::assertEquals(0, $this->initCommand->run($this->inputMock, $this->outputMock));
+        static::assertEquals(0, $this->splitRepositoryInitCommand->run($this->inputMock, $this->outputMock));
     }
 
     /**
@@ -109,7 +112,7 @@ class InitCommandTest extends Unit
             ->method('executeForSingleRepository');
 
         try {
-            $this->initCommand->run($this->inputMock, $this->outputMock);
+            $this->splitRepositoryInitCommand->run($this->inputMock, $this->outputMock);
         } catch (Exception $e) {
             return;
         }

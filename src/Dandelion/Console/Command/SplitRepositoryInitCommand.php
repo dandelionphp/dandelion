@@ -4,28 +4,28 @@ declare(strict_types=1);
 
 namespace Dandelion\Console\Command;
 
-use Dandelion\Operation\InitializerInterface;
+use Dandelion\Operation\SplitRepositoryInitializerInterface;
 use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class InitCommand extends Command
+class SplitRepositoryInitCommand extends Command
 {
-    public const NAME = 'init';
+    public const NAME = 'split-repository:init';
     public const DESCRIPTION = 'Init split repository on vcs platform.';
 
     /**
-     * @var \Dandelion\Operation\InitializerInterface
+     * @var \Dandelion\Operation\SplitRepositoryInitializerInterface
      */
     protected $initializer;
 
     /**
-     * @param \Dandelion\Operation\InitializerInterface $initializer
+     * @param \Dandelion\Operation\SplitRepositoryInitializerInterface $initializer
      */
     public function __construct(
-        InitializerInterface $initializer
+        SplitRepositoryInitializerInterface $initializer
     ) {
         parent::__construct();
         $this->initializer = $initializer;

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Dandelion\Operation;
 
 use Dandelion\Configuration\ConfigurationLoaderInterface;
-use Dandelion\Console\Command\ReleaseCommand;
 use Dandelion\Console\Command\SplitCommand;
 use Dandelion\Exception\RepositoryNotFoundException;
 use Dandelion\Lock\LockTrait;
