@@ -14,6 +14,11 @@ class Configuration
     protected $repositories;
 
     /**
+     * @var \Dandelion\Configuration\Vcs
+     */
+    protected $vcs;
+
+    /**
      * @var string
      */
     protected $pathToTempDirectory;
@@ -39,6 +44,26 @@ class Configuration
     public function setRepositories(array $repositories): Configuration
     {
         $this->repositories = new ArrayObject($repositories);
+
+        return $this;
+    }
+
+    /**
+     * @return \Dandelion\Configuration\Vcs
+     */
+    public function getVcs(): Vcs
+    {
+        return $this->vcs;
+    }
+
+    /**
+     * @param \Dandelion\Configuration\Vcs $vcs
+     *
+     * @return \Dandelion\Configuration\Configuration
+     */
+    public function setVcs(Vcs $vcs): Configuration
+    {
+        $this->vcs = $vcs;
 
         return $this;
     }

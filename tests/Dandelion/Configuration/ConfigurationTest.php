@@ -19,6 +19,11 @@ class ConfigurationTest extends Unit
     protected $repositoryMock;
 
     /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Configuration\Vcs
+     */
+    protected $vcsMock;
+
+    /**
      * @return void
      */
     protected function _before(): void
@@ -26,6 +31,10 @@ class ConfigurationTest extends Unit
         parent::_before();
 
         $this->repositoryMock = $this->getMockBuilder(Repository::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->vcsMock = $this->getMockBuilder(Vcs::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -40,10 +49,19 @@ class ConfigurationTest extends Unit
         $repositoryName = 'package';
         $repositories = [$repositoryName => $this->repositoryMock];
 
-        $this->assertEquals($this->configuration, $this->configuration->setRepositories($repositories));
-        $this->assertCount(1, $this->configuration->getRepositories());
-        $this->assertTrue($this->configuration->getRepositories()->offsetExists($repositoryName));
-        $this->assertEquals($this->repositoryMock, $this->configuration->getRepositories()->offsetGet($repositoryName));
+        static::assertEquals($this->configuration, $this->configuration->setRepositories($repositories));
+        static::assertCount(1, $this->configuration->getRepositories());
+        static::assertTrue($this->configuration->getRepositories()->offsetExists($repositoryName));
+        static::assertEquals($this->repositoryMock, $this->configuration->getRepositories()->offsetGet($repositoryName));
+    }
+
+    /**
+     * @return void
+     */
+    public function testSetAndGetVcs(): void
+    {
+        static::assertEquals($this->configuration, $this->configuration->setVcs($this->vcsMock));
+        static::assertEquals($this->vcsMock, $this->configuration->getVcs());
     }
 
     /**
@@ -53,8 +71,8 @@ class ConfigurationTest extends Unit
     {
         $pathToTempDirectory = '/temp';
 
-        $this->assertEquals($this->configuration, $this->configuration->setPathToTempDirectory($pathToTempDirectory));
-        $this->assertEquals($pathToTempDirectory, $this->configuration->getPathToTempDirectory());
+        static::assertEquals($this->configuration, $this->configuration->setPathToTempDirectory($pathToTempDirectory));
+        static::assertEquals($pathToTempDirectory, $this->configuration->getPathToTempDirectory());
     }
 
     /**
@@ -62,7 +80,7 @@ class ConfigurationTest extends Unit
      */
     public function testGetPathToSplitshLite(): void
     {
-        $this->assertEquals(null, $this->configuration->getPathToSplitshLite());
+        static::assertEquals(null, $this->configuration->getPathToSplitshLite());
     }
 
     /**
@@ -72,7 +90,7 @@ class ConfigurationTest extends Unit
     {
         $pathToSplitshLite = '/usr/local/bin/splitsh-lite';
 
-        $this->assertEquals($this->configuration, $this->configuration->setPathToSplitshLite($pathToSplitshLite));
-        $this->assertEquals($pathToSplitshLite, $this->configuration->getPathToSplitshLite());
+        static::assertEquals($this->configuration, $this->configuration->setPathToSplitshLite($pathToSplitshLite));
+        static::assertEquals($pathToSplitshLite, $this->configuration->getPathToSplitshLite());
     }
 }

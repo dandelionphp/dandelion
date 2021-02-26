@@ -6,6 +6,7 @@ namespace Dandelion\Console\Command;
 
 use Codeception\Test\Unit;
 use Dandelion\Operation\AbstractOperation;
+use Dandelion\Operation\ReleaserInterface;
 use Dandelion\Operation\Result\MessageInterface;
 use Dandelion\Operation\ResultInterface;
 use Exception;
@@ -35,7 +36,7 @@ class ReleaseAllCommandTest extends Unit
     protected $messageMocks;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\AbstractOperation
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\ReleaserInterface
      */
     protected $releaserMock;
 
@@ -69,7 +70,7 @@ class ReleaseAllCommandTest extends Unit
                 ->getMock()
         ];
 
-        $this->releaserMock = $this->getMockBuilder(AbstractOperation::class)
+        $this->releaserMock = $this->getMockBuilder(ReleaserInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -109,8 +110,13 @@ class ReleaseAllCommandTest extends Unit
 
         $this->releaserMock->expects($this->atLeastOnce())
             ->method('executeForAllRepositories')
-            ->with($branch)
-            ->willReturn($this->resultMock);
+            ->with(
+                $this->callback(
+                    static function(array $arguments) use ($branch) {
+                        return count($arguments) === 1 && $arguments[0] === $branch;
+                    }
+                )
+            )->willReturn($this->resultMock);
 
         $this->resultMock->expects($this->atLeastOnce())
             ->method('getMessages')

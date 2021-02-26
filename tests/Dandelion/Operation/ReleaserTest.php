@@ -9,6 +9,7 @@ use Codeception\Test\Unit;
 use Dandelion\Configuration\Configuration;
 use Dandelion\Configuration\ConfigurationLoaderInterface;
 use Dandelion\Configuration\Repository;
+use Dandelion\Configuration\Vcs;
 use Dandelion\Console\Command\ReleaseCommand;
 use Dandelion\Filesystem\FilesystemInterface;
 use Dandelion\Operation\Result\MessageFactoryInterface;
@@ -16,6 +17,8 @@ use Dandelion\Process\ProcessFactory;
 use Dandelion\Process\ProcessPoolFactoryInterface;
 use Dandelion\Process\ProcessPoolInterface;
 use Dandelion\VersionControl\GitInterface;
+use Dandelion\VersionControl\Platform\PlatformFactoryInterface;
+use Dandelion\VersionControl\Platform\PlatformInterface;
 use Exception;
 use Iterator;
 use Symfony\Component\Process\Process;
@@ -48,6 +51,11 @@ class ReleaserTest extends Unit
     protected $repositoryMock;
 
     /**
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Configuration\Vcs
+     */
+    protected $vcsMock;
+
+    /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Filesystem\FilesystemInterface
      */
     protected $filesystemMock;
@@ -78,12 +86,22 @@ class ReleaserTest extends Unit
     protected $messageFactoryMock;
 
     /**
+     * @var \Dandelion\VersionControl\Platform\PlatformFactoryInterface|\PHPUnit\Framework\MockObject\MockObject
+     */
+    protected $platformFactoryMock;
+
+    /**
+     * @var \Dandelion\VersionControl\Platform\PlatformInterface|\PHPUnit\Framework\MockObject\MockObject
+     */
+    protected $platformMock;
+
+    /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\VersionControl\GitInterface
      */
     protected $gitMock;
 
     /**
-     * @var \Dandelion\Operation\AbstractOperation
+     * @var \Dandelion\Operation\Releaser
      */
     protected $releaser;
 
@@ -114,6 +132,10 @@ class ReleaserTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
+        $this->vcsMock = $this->getMockBuilder(Vcs::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
         $this->filesystemMock = $this->getMockBuilder(FilesystemInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -138,6 +160,14 @@ class ReleaserTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
+        $this->platformFactoryMock  = $this->getMockBuilder(PlatformFactoryInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->platformMock  = $this->getMockBuilder(PlatformInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
         $this->gitMock = $this->getMockBuilder(GitInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -148,6 +178,7 @@ class ReleaserTest extends Unit
             $this->processPoolFactoryMock,
             $this->resultFactoryMock,
             $this->messageFactoryMock,
+            $this->platformFactoryMock,
             $this->gitMock
         );
     }
@@ -165,38 +196,38 @@ class ReleaserTest extends Unit
         $pathToCurrentWorkingDirectory = '/path/to/currentWorkingDirectory/';
         $pathToRepositoryTempDirectory = sprintf('%s%s%s', $pathToTempDirectory, $repositoryName, DIRECTORY_SEPARATOR);
 
-        $this->configurationLoaderMock->expects($this->atLeastOnce())
+        $this->configurationLoaderMock->expects(static::atLeastOnce())
             ->method('load')
             ->willReturn($this->configurationMock);
 
-        $this->configurationMock->expects($this->atLeastOnce())
+        $this->configurationMock->expects(static::atLeastOnce())
             ->method('getRepositories')
             ->willReturn($this->repositoriesMock);
 
-        $this->repositoriesMock->expects($this->atLeastOnce())
+        $this->repositoriesMock->expects(static::atLeastOnce())
             ->method('offsetExists')
             ->with($repositoryName)
             ->willReturn(true);
 
-        $this->repositoriesMock->expects($this->atLeastOnce())
+        $this->repositoriesMock->expects(static::atLeastOnce())
             ->method('offsetGet')
             ->with($repositoryName)
             ->willReturn($this->repositoryMock);
 
-        $this->filesystemMock->expects($this->atLeastOnce())
+        $this->filesystemMock->expects(static::atLeastOnce())
             ->method('createDirectory')
             ->with($pathToRepositoryTempDirectory)
             ->willReturn($this->filesystemMock);
 
-        $this->filesystemMock->expects($this->atLeastOnce())
+        $this->filesystemMock->expects(static::atLeastOnce())
             ->method('getCurrentWorkingDirectory')
             ->willReturn($pathToCurrentWorkingDirectory);
 
-        $this->configurationMock->expects($this->atLeastOnce())
+        $this->configurationMock->expects(static::atLeastOnce())
             ->method('getPathToTempDirectory')
             ->willReturn($pathToTempDirectory);
 
-        $this->filesystemMock->expects($this->atLeastOnce())
+        $this->filesystemMock->expects(static::atLeastOnce())
             ->method('changeDirectory')
             ->withConsecutive(
                 [
@@ -208,45 +239,55 @@ class ReleaserTest extends Unit
             )
             ->willReturn($this->filesystemMock);
 
-        $this->repositoryMock->expects($this->atLeastOnce())
-            ->method('getUrl')
+        $this->configurationMock->expects(static::atLeastOnce())
+            ->method('getVcs')
+            ->willReturn($this->vcsMock);
+
+        $this->platformFactoryMock->expects(static::atLeastOnce())
+            ->method('create')
+            ->with($this->vcsMock)
+            ->willReturn($this->platformMock);
+
+        $this->platformMock->expects(static::atLeastOnce())
+            ->method('getRepositoryUrl')
+            ->with($repositoryName)
             ->willReturn($repositoryUrl);
 
-        $this->gitMock->expects($this->atLeastOnce())
+        $this->gitMock->expects(static::atLeastOnce())
             ->method('clone')
             ->with($repositoryUrl, '.')
             ->willReturn($this->gitMock);
 
-        $this->gitMock->expects($this->atLeastOnce())
+        $this->gitMock->expects(static::atLeastOnce())
             ->method('checkout')
             ->with($branch)
             ->willReturn($this->gitMock);
 
-        $this->repositoryMock->expects($this->atLeastOnce())
+        $this->repositoryMock->expects(static::atLeastOnce())
             ->method('getVersion')
             ->willReturn($version);
 
-        $this->gitMock->expects($this->atLeastOnce())
+        $this->gitMock->expects(static::atLeastOnce())
             ->method('describeClosestTag')
             ->with($version)
             ->willReturn(null);
 
-        $this->gitMock->expects($this->atLeastOnce())
+        $this->gitMock->expects(static::atLeastOnce())
             ->method('tag')
             ->with($version)
             ->willReturn($this->gitMock);
 
-        $this->gitMock->expects($this->atLeastOnce())
+        $this->gitMock->expects(static::atLeastOnce())
             ->method('pushWithTags')
             ->with('origin')
             ->willReturn($this->gitMock);
 
-        $this->filesystemMock->expects($this->atLeastOnce())
+        $this->filesystemMock->expects(static::atLeastOnce())
             ->method('removeDirectory')
             ->with($pathToRepositoryTempDirectory)
             ->willReturn($this->filesystemMock);
 
-        $this->assertEquals(
+        static::assertEquals(
             $this->releaser,
             $this->releaser->executeForSingleRepository($repositoryName, $branch)
         );
@@ -260,51 +301,48 @@ class ReleaserTest extends Unit
         $repositoryName = 'package';
         $branch = 'master';
 
-        $this->configurationLoaderMock->expects($this->atLeastOnce())
+        $this->configurationLoaderMock->expects(static::atLeastOnce())
             ->method('load')
             ->willReturn($this->configurationMock);
 
-        $this->configurationMock->expects($this->atLeastOnce())
+        $this->configurationMock->expects(static::atLeastOnce())
             ->method('getRepositories')
             ->willReturn($this->repositoriesMock);
 
-        $this->repositoriesMock->expects($this->atLeastOnce())
+        $this->repositoriesMock->expects(static::atLeastOnce())
             ->method('offsetExists')
             ->with($repositoryName)
             ->willReturn(false);
 
-        $this->repositoriesMock->expects($this->never())
+        $this->repositoriesMock->expects(static::never())
             ->method('offsetGet')
             ->with($repositoryName);
 
-        $this->filesystemMock->expects($this->never())
+        $this->filesystemMock->expects(static::never())
             ->method('createDirectory');
 
-        $this->filesystemMock->expects($this->never())
+        $this->filesystemMock->expects(static::never())
             ->method('getCurrentWorkingDirectory');
 
-        $this->configurationMock->expects($this->never())
+        $this->configurationMock->expects(static::never())
             ->method('getPathToTempDirectory');
 
-        $this->filesystemMock->expects($this->never())
+        $this->filesystemMock->expects(static::never())
             ->method('changeDirectory');
 
-        $this->repositoryMock->expects($this->never())
-            ->method('getUrl');
-
-        $this->gitMock->expects($this->never())
+        $this->gitMock->expects(static::never())
             ->method('clone');
 
-        $this->gitMock->expects($this->never())
+        $this->gitMock->expects(static::never())
             ->method('checkout');
 
-        $this->gitMock->expects($this->never())
+        $this->gitMock->expects(static::never())
             ->method('describeClosestTag');
 
-        $this->gitMock->expects($this->never())
+        $this->gitMock->expects(static::never())
             ->method('tag');
 
-        $this->gitMock->expects($this->never())
+        $this->gitMock->expects(static::never())
             ->method('pushWithTags');
 
         try {
@@ -313,7 +351,7 @@ class ReleaserTest extends Unit
             return;
         }
 
-        $this->fail();
+        static::fail();
     }
 
     /**
@@ -329,77 +367,87 @@ class ReleaserTest extends Unit
         $pathToRepositoryTempDirectory = sprintf('%s%s%s', $pathToTempDirectory, $repositoryName, DIRECTORY_SEPARATOR);
         $pathToCurrentWorkingDirectory = '/path/to/currentWorkingDirectory/';
 
-        $this->configurationLoaderMock->expects($this->atLeastOnce())
+        $this->configurationLoaderMock->expects(static::atLeastOnce())
             ->method('load')
             ->willReturn($this->configurationMock);
 
-        $this->configurationMock->expects($this->atLeastOnce())
+        $this->configurationMock->expects(static::atLeastOnce())
             ->method('getRepositories')
             ->willReturn($this->repositoriesMock);
 
-        $this->repositoriesMock->expects($this->atLeastOnce())
+        $this->repositoriesMock->expects(static::atLeastOnce())
             ->method('offsetExists')
             ->with($repositoryName)
             ->willReturn(true);
 
-        $this->repositoriesMock->expects($this->atLeastOnce())
+        $this->repositoriesMock->expects(static::atLeastOnce())
             ->method('offsetGet')
             ->with($repositoryName)
             ->willReturn($this->repositoryMock);
 
-        $this->filesystemMock->expects($this->atLeastOnce())
+        $this->filesystemMock->expects(static::atLeastOnce())
             ->method('createDirectory')
             ->with($pathToRepositoryTempDirectory)
             ->willReturn($this->filesystemMock);
 
-        $this->filesystemMock->expects($this->atLeastOnce())
+        $this->filesystemMock->expects(static::atLeastOnce())
             ->method('getCurrentWorkingDirectory')
             ->willReturn($pathToCurrentWorkingDirectory);
 
-        $this->configurationMock->expects($this->atLeastOnce())
+        $this->configurationMock->expects(static::atLeastOnce())
             ->method('getPathToTempDirectory')
             ->willReturn($pathToTempDirectory);
 
-        $this->filesystemMock->expects($this->atLeastOnce())
+        $this->filesystemMock->expects(static::atLeastOnce())
             ->method('changeDirectory')
             ->withConsecutive([$pathToRepositoryTempDirectory], [$pathToCurrentWorkingDirectory])
             ->willReturn($this->filesystemMock);
 
-        $this->repositoryMock->expects($this->atLeastOnce())
-            ->method('getUrl')
+        $this->configurationMock->expects(static::atLeastOnce())
+            ->method('getVcs')
+            ->willReturn($this->vcsMock);
+
+        $this->platformFactoryMock->expects(static::atLeastOnce())
+            ->method('create')
+            ->with($this->vcsMock)
+            ->willReturn($this->platformMock);
+
+        $this->platformMock->expects(static::atLeastOnce())
+            ->method('getRepositoryUrl')
+            ->with($repositoryName)
             ->willReturn($repositoryUrl);
 
-        $this->gitMock->expects($this->atLeastOnce())
+        $this->gitMock->expects(static::atLeastOnce())
             ->method('clone')
             ->with($repositoryUrl, '.')
             ->willReturn($this->gitMock);
 
-        $this->gitMock->expects($this->atLeastOnce())
+        $this->gitMock->expects(static::atLeastOnce())
             ->method('checkout')
             ->with($branch)
             ->willReturn($this->gitMock);
 
-        $this->repositoryMock->expects($this->atLeastOnce())
+        $this->repositoryMock->expects(static::atLeastOnce())
             ->method('getVersion')
             ->willReturn($version);
 
-        $this->gitMock->expects($this->atLeastOnce())
+        $this->gitMock->expects(static::atLeastOnce())
             ->method('describeClosestTag')
             ->with($version)
             ->willReturn($version);
 
-        $this->gitMock->expects($this->never())
+        $this->gitMock->expects(static::never())
             ->method('tag');
 
-        $this->gitMock->expects($this->never())
+        $this->gitMock->expects(static::never())
             ->method('pushWithTags');
 
-        $this->filesystemMock->expects($this->atLeastOnce())
+        $this->filesystemMock->expects(static::atLeastOnce())
             ->method('removeDirectory')
             ->with($pathToRepositoryTempDirectory)
             ->willReturn($this->filesystemMock);
 
-        $this->assertEquals(
+        static::assertEquals(
             $this->releaser,
             $this->releaser->executeForSingleRepository($repositoryName, $branch)
         );
@@ -414,42 +462,42 @@ class ReleaserTest extends Unit
         $repositoryName = 'package';
         $branch = 'master';
 
-        $this->configurationLoaderMock->expects($this->atLeastOnce())
+        $this->configurationLoaderMock->expects(static::atLeastOnce())
             ->method('load')
             ->willReturn($this->configurationMock);
 
-        $this->processPoolFactoryMock->expects($this->atLeastOnce())
+        $this->processPoolFactoryMock->expects(static::atLeastOnce())
             ->method('create')
             ->willReturn($this->processPoolMock);
 
-        $this->resultFactoryMock->expects($this->atLeastOnce())
+        $this->resultFactoryMock->expects(static::atLeastOnce())
             ->method('create')
             ->willReturn($this->resultMock);
 
-        $this->configurationMock->expects($this->atLeastOnce())
+        $this->configurationMock->expects(static::atLeastOnce())
             ->method('getRepositories')
             ->willReturn($this->repositoriesMock);
 
-        $this->repositoriesMock->expects($this->atLeastOnce())
+        $this->repositoriesMock->expects(static::atLeastOnce())
             ->method('getIterator')
             ->willReturn($this->iteratorMock);
 
-        $this->iteratorMock->expects($this->atLeastOnce())
+        $this->iteratorMock->expects(static::atLeastOnce())
             ->method('rewind');
 
-        $this->iteratorMock->expects($this->atLeastOnce())
+        $this->iteratorMock->expects(static::atLeastOnce())
             ->method('valid')
             ->willReturnOnConsecutiveCalls(true, false);
 
-        $this->iteratorMock->expects($this->atLeastOnce())
+        $this->iteratorMock->expects(static::atLeastOnce())
             ->method('current')
             ->willReturn($this->repositoryMock);
 
-        $this->iteratorMock->expects($this->atLeastOnce())
+        $this->iteratorMock->expects(static::atLeastOnce())
             ->method('key')
             ->willReturn($repositoryName);
 
-        $this->processPoolMock->expects($this->atLeastOnce())
+        $this->processPoolMock->expects(static::atLeastOnce())
             ->method('addProcess')
             ->with([
                 DANDELION_BINARY,
@@ -458,13 +506,13 @@ class ReleaserTest extends Unit
                 $branch
             ])->willReturn($this->processPoolMock);
 
-        $this->processPoolMock->expects($this->atLeastOnce())
+        $this->processPoolMock->expects(static::atLeastOnce())
             ->method('start')
             ->willReturn($this->processPoolMock);
 
-        $this->assertEquals(
+        static::assertEquals(
             $this->resultMock,
-            $this->releaser->executeForAllRepositories($branch)
+            $this->releaser->executeForAllRepositories([$branch])
         );
     }
 }

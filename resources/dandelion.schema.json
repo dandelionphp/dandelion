@@ -5,18 +5,18 @@
       "type": "object",
       "title": "Split-Repository",
       "required": [
-        "url",
+        "name",
         "path",
         "version"
       ],
       "properties": {
-        "url": {
+        "name": {
           "type": "string",
-          "title": "Url",
-          "description": "Url to git repository.",
+          "title": "Name",
+          "description": "Git repository name.",
           "default": "",
           "examples": [
-            "https://github.com/organisation/config.git"
+            "config"
           ]
         },
         "path": {
@@ -49,6 +49,53 @@
           "$ref": "#repository"
         }
       }
+    },
+    "vcs": {
+      "$id": "#vcs",
+      "type": "object",
+      "title": "Version control system",
+      "required": [
+        "owner",
+        "token"
+      ],
+      "properties": {
+        "token": {
+          "type": "string",
+          "title": "Token",
+          "description": "Token",
+          "default": ""
+        },
+        "owner": {
+          "$ref": "#owner"
+        }
+      }
+    },
+    "owner": {
+      "$id": "#owner",
+      "type": "object",
+      "title": "Owner",
+      "required": [
+        "name",
+        "type"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "description": "Owner name.",
+          "default": ""
+        },
+        "type": {
+          "type": "string",
+          "title": "Type",
+          "description": "Owner type.",
+          "default": "",
+          "examples": [
+            "organisation",
+            "authenticated-user"
+          ]
+        }
+      }
     }
   },
   "$schema": "http://json-schema.org/draft-07/schema#",
@@ -57,11 +104,15 @@
   "title": "Dandelion Configuration",
   "required": [
     "repositories",
+    "vcs",
     "pathToTempDirectory"
   ],
   "properties": {
     "repositories": {
       "$ref": "#repositories"
+    },
+    "vcs": {
+      "$ref": "#vcs"
     },
     "pathToTempDirectory": {
       "$id": "/properties/pathToTempDirectory",

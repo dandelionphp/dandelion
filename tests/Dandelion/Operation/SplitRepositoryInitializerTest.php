@@ -10,28 +10,21 @@ use Dandelion\Configuration\Configuration;
 use Dandelion\Configuration\ConfigurationLoaderInterface;
 use Dandelion\Configuration\Repository;
 use Dandelion\Configuration\Vcs;
-use Dandelion\Console\Command\SplitCommand;
+use Dandelion\Console\Command\SplitRepositoryInitCommand;
 use Dandelion\Operation\Result\MessageFactoryInterface;
 use Dandelion\Process\ProcessPoolFactoryInterface;
 use Dandelion\Process\ProcessPoolInterface;
-use Dandelion\VersionControl\GitInterface;
 use Dandelion\VersionControl\Platform\PlatformFactoryInterface;
 use Dandelion\VersionControl\Platform\PlatformInterface;
-use Dandelion\VersionControl\SplitshLiteInterface;
 use Exception;
 use Iterator;
 
-use Symfony\Component\Lock\LockFactory;
-use Symfony\Component\Lock\LockInterface;
-use function sha1;
-use function sprintf;
-
-class SplitterTest extends Unit
+class SplitRepositoryInitializerTest extends Unit
 {
     /**
-     * @var \Dandelion\Operation\Splitter
+     * @var \Dandelion\Operation\SplitRepositoryInitializer
      */
-    protected $splitter;
+    protected $splitRepositoryInitializer;
 
     /**
      * @var \Dandelion\Configuration\ConfigurationLoaderInterface|\PHPUnit\Framework\MockObject\MockObject
@@ -98,26 +91,6 @@ class SplitterTest extends Unit
      */
     protected $platformMock;
 
-    /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\VersionControl\GitInterface
-     */
-    protected $gitMock;
-
-    /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\VersionControl\SplitshLiteInterface
-     */
-    protected $splitshLiteMock;
-
-    /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Symfony\Component\Lock\LockFactory
-     */
-    protected $lockFactoryMock;
-
-    /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Symfony\Component\Lock\LockInterface
-     */
-    protected $lockMock;
-
 
     /**
      * @return void
@@ -178,31 +151,12 @@ class SplitterTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->gitMock = $this->getMockBuilder(GitInterface::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $this->splitshLiteMock = $this->getMockBuilder(SplitshLiteInterface::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $this->lockFactoryMock = $this->getMockBuilder(LockFactory::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $this->lockMock = $this->getMockBuilder(LockInterface::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $this->splitter = new Splitter(
+        $this->splitRepositoryInitializer = new SplitRepositoryInitializer(
             $this->configurationLoaderMock,
             $this->processPoolFactoryMock,
             $this->resultFactoryMock,
             $this->messageFactoryMock,
-            $this->platformFactoryMock,
-            $this->gitMock,
-            $this->splitshLiteMock,
-            $this->lockFactoryMock
+            $this->platformFactoryMock
         );
     }
 
@@ -213,11 +167,7 @@ class SplitterTest extends Unit
      */
     public function testExecuteForSingleRepository(): void
     {
-        $repositoryPath = '/path/to/package';
         $repositoryName = 'package';
-        $repositoryUrl = 'git@github.com:user/package.git';
-        $branch = 'master';
-        $sha1 = sha1('Lorem Ipsum');
 
         $this->configurationLoaderMock->expects(static::atLeastOnce())
             ->method('load')
@@ -232,10 +182,52 @@ class SplitterTest extends Unit
             ->with($repositoryName)
             ->willReturn(true);
 
-        $this->repositoriesMock->expects(static::atLeastOnce())
-            ->method('offsetGet')
+        $this->configurationMock->expects(static::atLeastOnce())
+            ->method('getVcs')
+            ->willReturn($this->vcsMock);
+
+        $this->platformFactoryMock->expects(static::atLeastOnce())
+            ->method('create')
+            ->with($this->vcsMock)
+            ->willReturn($this->platformMock);
+
+        $this->platformMock->expects(static::atLeastOnce())
+            ->method('existsSplitRepository')
             ->with($repositoryName)
-            ->willReturn($this->repositoryMock);
+            ->willReturn(false);
+
+        $this->platformMock->expects(static::atLeastOnce())
+            ->method('initSplitRepository')
+            ->with($repositoryName)
+            ->willReturn($this->platformMock);
+
+        static::assertEquals(
+            $this->splitRepositoryInitializer,
+            $this->splitRepositoryInitializer->executeForSingleRepository($repositoryName)
+        );
+    }
+
+    /**
+     * @throws \Exception
+     *
+     * @return void
+     */
+    public function testExecuteForSingleRepositoryWithExistingSplitRepository(): void
+    {
+        $repositoryName = 'package';
+
+        $this->configurationLoaderMock->expects(static::atLeastOnce())
+            ->method('load')
+            ->willReturn($this->configurationMock);
+
+        $this->configurationMock->expects(static::atLeastOnce())
+            ->method('getRepositories')
+            ->willReturn($this->repositoriesMock);
+
+        $this->repositoriesMock->expects(static::atLeastOnce())
+            ->method('offsetExists')
+            ->with($repositoryName)
+            ->willReturn(true);
 
         $this->configurationMock->expects(static::atLeastOnce())
             ->method('getVcs')
@@ -247,49 +239,16 @@ class SplitterTest extends Unit
             ->willReturn($this->platformMock);
 
         $this->platformMock->expects(static::atLeastOnce())
-            ->method('getRepositoryUrl')
+            ->method('existsSplitRepository')
             ->with($repositoryName)
-            ->willReturn($repositoryUrl);
-
-        $this->repositoryMock->expects(static::atLeastOnce())
-            ->method('getPath')
-            ->willReturn($repositoryPath);
-
-        $this->lockFactoryMock->expects(static::atLeastOnce())
-            ->method('createLock')
-            ->with(Splitter::LOCK_IDENTIFIER)
-            ->willReturn($this->lockMock);
-
-        $this->lockMock->expects(static::atLeastOnce())
-            ->method('acquire')
-            ->with(true)
             ->willReturn(true);
 
-        $this->gitMock->expects(static::atLeastOnce())
-            ->method('existsRemote')
-            ->with($repositoryName)
-            ->willReturn(false);
-
-        $this->gitMock->expects(static::atLeastOnce())
-            ->method('addRemote')
-            ->with($repositoryName, $repositoryUrl);
-
-        $this->lockMock->expects(static::atLeastOnce())
-            ->method('release')
-            ->willReturn(true);
-
-        $this->splitshLiteMock->expects(static::atLeastOnce())
-            ->method('getSha1')
-            ->with($repositoryPath)
-            ->willReturn($sha1);
-
-        $this->gitMock->expects(static::atLeastOnce())
-            ->method('pushForcefully')
-            ->with($repositoryName, sprintf('%s:refs/heads/%s', $sha1, $branch));
+        $this->platformMock->expects(static::never())
+            ->method('initSplitRepository');
 
         static::assertEquals(
-            $this->splitter,
-            $this->splitter->executeForSingleRepository($repositoryName, $branch)
+            $this->splitRepositoryInitializer,
+            $this->splitRepositoryInitializer->executeForSingleRepository($repositoryName)
         );
     }
 
@@ -301,7 +260,6 @@ class SplitterTest extends Unit
     public function testExecuteForSingleRepositoriesWithNonExistingRepository(): void
     {
         $repositoryName = 'package';
-        $branch = 'master';
 
         $this->configurationLoaderMock->expects(static::atLeastOnce())
             ->method('load')
@@ -317,26 +275,16 @@ class SplitterTest extends Unit
             ->willReturn(false);
 
         $this->repositoriesMock->expects(static::never())
-            ->method('offsetGet')
-            ->with($repositoryName);
+            ->method('offsetGet');
 
-        $this->lockFactoryMock->expects(static::never())
-            ->method('createLock');
+        $this->configurationMock->expects(static::never())
+            ->method('getVcs');
 
-        $this->gitMock->expects(static::never())
-            ->method('existsRemote');
-
-        $this->gitMock->expects(static::never())
-            ->method('addRemote');
-
-        $this->splitshLiteMock->expects(static::never())
-            ->method('getSha1');
-
-        $this->gitMock->expects(static::never())
-            ->method('pushForcefully');
+        $this->platformFactoryMock->expects(static::never())
+            ->method('create');
 
         try {
-            $this->splitter->executeForSingleRepository($repositoryName, $branch);
+            $this->splitRepositoryInitializer->executeForSingleRepository($repositoryName);
         } catch (Exception $e) {
             return;
         }
@@ -350,7 +298,6 @@ class SplitterTest extends Unit
     public function testExecuteForAllRepositories(): void
     {
         $repositoryName = 'package';
-        $branch = 'master';
 
         $this->configurationLoaderMock->expects(static::atLeastOnce())
             ->method('load')
@@ -391,9 +338,8 @@ class SplitterTest extends Unit
             ->method('addProcess')
             ->with([
                 DANDELION_BINARY,
-                SplitCommand::NAME,
-                $repositoryName,
-                $branch
+                SplitRepositoryInitCommand::NAME,
+                $repositoryName
             ])->willReturn($this->processPoolMock);
 
         $this->processPoolMock->expects(static::atLeastOnce())
@@ -402,7 +348,7 @@ class SplitterTest extends Unit
 
         static::assertEquals(
             $this->resultMock,
-            $this->splitter->executeForAllRepositories([$branch])
+            $this->splitRepositoryInitializer->executeForAllRepositories([])
         );
     }
 }

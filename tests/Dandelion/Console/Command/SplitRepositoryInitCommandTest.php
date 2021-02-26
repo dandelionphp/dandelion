@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace Dandelion\Console\Command;
 
 use Codeception\Test\Unit;
-use Dandelion\Operation\AbstractOperation;
-use Dandelion\Operation\ReleaserInterface;
+use Dandelion\Operation\SplitRepositoryInitializerInterface;
 use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ReleaseCommandTest extends Unit
+class SplitRepositoryInitCommandTest extends Unit
 {
     /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\Symfony\Component\Console\Input\InputInterface
@@ -24,14 +23,14 @@ class ReleaseCommandTest extends Unit
     protected $outputMock;
 
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\ReleaserInterface
+     * @var \PHPUnit\Framework\MockObject\MockObject|\Dandelion\Operation\SplitRepositoryInitializerInterface
      */
-    protected $releaserMock;
+    protected $initializerMock;
 
     /**
-     * @var \Dandelion\Console\Command\ReleaseCommand
+     * @var \Dandelion\Console\Command\SplitRepositoryInitCommand
      */
-    protected $releaseCommand;
+    protected $splitRepositoryInitCommand;
 
     /**
      * @return void
@@ -48,11 +47,11 @@ class ReleaseCommandTest extends Unit
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->releaserMock = $this->getMockBuilder(ReleaserInterface::class)
+        $this->initializerMock = $this->getMockBuilder(SplitRepositoryInitializerInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->releaseCommand = new ReleaseCommand($this->releaserMock);
+        $this->splitRepositoryInitCommand = new SplitRepositoryInitCommand($this->initializerMock);
     }
 
     /**
@@ -60,7 +59,7 @@ class ReleaseCommandTest extends Unit
      */
     public function testGetName(): void
     {
-        $this->assertEquals(ReleaseCommand::NAME, $this->releaseCommand->getName());
+        static::assertEquals(SplitRepositoryInitCommand::NAME, $this->splitRepositoryInitCommand->getName());
     }
 
     /**
@@ -68,7 +67,10 @@ class ReleaseCommandTest extends Unit
      */
     public function testGetDescription(): void
     {
-        $this->assertEquals(ReleaseCommand::DESCRIPTION, $this->releaseCommand->getDescription());
+        static::assertEquals(
+            SplitRepositoryInitCommand::DESCRIPTION,
+            $this->splitRepositoryInitCommand->getDescription()
+        );
     }
 
     /**
@@ -78,49 +80,43 @@ class ReleaseCommandTest extends Unit
      */
     public function testRun(): void
     {
-        $branch = 'master';
         $repositoryName = 'package';
 
-        $this->inputMock->expects($this->atLeastOnce())
+        $this->inputMock->expects(static::atLeastOnce())
             ->method('getArgument')
-            ->withConsecutive(['repositoryName'], ['branch'])
-            ->willReturnOnConsecutiveCalls(
-                $repositoryName,
-                $branch
-            );
+            ->withConsecutive(['repositoryName'])
+            ->willReturnOnConsecutiveCalls($repositoryName);
 
-        $this->releaserMock->expects($this->atLeastOnce())
+        $this->initializerMock->expects(static::atLeastOnce())
             ->method('executeForSingleRepository')
-            ->with($repositoryName, $branch);
+            ->with($repositoryName);
 
-        $this->assertEquals(0, $this->releaseCommand->run($this->inputMock, $this->outputMock));
+        static::assertEquals(0, $this->splitRepositoryInitCommand->run($this->inputMock, $this->outputMock));
     }
 
     /**
      * @return void
+     *
+     * @throws \Exception
      */
     public function testRunWithInvalidArgument(): void
     {
-        $branch = 1;
-        $repositoryName = 'package';
+        $repositoryName = 1;
 
-        $this->inputMock->expects($this->atLeastOnce())
+        $this->inputMock->expects(static::atLeastOnce())
             ->method('getArgument')
-            ->withConsecutive(['repositoryName'], ['branch'])
-            ->willReturnOnConsecutiveCalls(
-                $repositoryName,
-                $branch
-            );
+            ->withConsecutive(['repositoryName'])
+            ->willReturnOnConsecutiveCalls($repositoryName);
 
-        $this->releaserMock->expects($this->never())
+        $this->initializerMock->expects(static::never())
             ->method('executeForSingleRepository');
 
         try {
-            $this->releaseCommand->run($this->inputMock, $this->outputMock);
+            $this->splitRepositoryInitCommand->run($this->inputMock, $this->outputMock);
         } catch (Exception $e) {
             return;
         }
 
-        $this->fail();
+        static::fail();
     }
 }

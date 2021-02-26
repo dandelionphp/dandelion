@@ -13,7 +13,7 @@ bundle: install
 	box compile
 
 docker-tag: docker-build
-	docker tag dandelionphp/dandelion dandelionphp/dandelion:$(TRAVIS_TAG)
+	docker tag dandelionphp/dandelion dandelionphp/dandelion:$(IMAGE_TAG)
 
 docker-build:
 	docker build -t dandelionphp/dandelion .
@@ -23,7 +23,7 @@ docker-login:
 
 docker-push: docker-login
 	docker push dandelionphp/dandelion:latest
-	docker push dandelionphp/dandelion:$(TRAVIS_TAG)
+	docker push dandelionphp/dandelion:$(IMAGE_TAG)
 
 phpcs:
 	./vendor/bin/phpcs --standard=./vendor/squizlabs/php_codesniffer/src/Standards/PSR12/ruleset.xml ./src/
@@ -40,6 +40,6 @@ phpmd:
 phpcpd:
 	./vendor/bin/phpcpd ./src
 
-grumphp: phpcs phpstan codeception phpmd phpcpd
+ci: phpcs phpstan codeception phpmd phpcpd
 
-test: install-dev phpcs phpstan codeception phpmd phpcpd
+test: install-dev ci

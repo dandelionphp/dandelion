@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Dandelion\Console\Command;
 
-use Dandelion\Operation\AbstractOperation;
+use Dandelion\Operation\ReleaserInterface;
 use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -19,15 +19,15 @@ class ReleaseCommand extends Command
     public const DESCRIPTION = 'Releases package.';
 
     /**
-     * @var \Dandelion\Operation\AbstractOperation
+     * @var \Dandelion\Operation\ReleaserInterface
      */
     protected $releaser;
 
     /**
-     * @param \Dandelion\Operation\AbstractOperation $releaser
+     * @param \Dandelion\Operation\ReleaserInterface $releaser
      */
     public function __construct(
-        AbstractOperation $releaser
+        ReleaserInterface $releaser
     ) {
         parent::__construct();
         $this->releaser = $releaser;

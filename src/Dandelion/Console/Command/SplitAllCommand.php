@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Dandelion\Console\Command;
 
-use Dandelion\Operation\AbstractOperation;
 use Dandelion\Operation\Result\MessageInterface;
+use Dandelion\Operation\SplitterInterface;
 use InvalidArgumentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -21,15 +21,15 @@ class SplitAllCommand extends Command
     public const DESCRIPTION = 'Splits all packages from mono to split.';
 
     /**
-     * @var \Dandelion\Operation\AbstractOperation
+     * @var \Dandelion\Operation\SplitterInterface
      */
     protected $splitter;
 
     /**
-     * @param \Dandelion\Operation\AbstractOperation $splitter
+     * @param \Dandelion\Operation\SplitterInterface $splitter
      */
     public function __construct(
-        AbstractOperation $splitter
+        SplitterInterface $splitter
     ) {
         parent::__construct();
         $this->splitter = $splitter;
@@ -65,7 +65,7 @@ class SplitAllCommand extends Command
         $output->writeln('Splitting monorepo packages:');
         $output->writeln('---------------------------------');
 
-        $result = $this->splitter->executeForAllRepositories($branch);
+        $result = $this->splitter->executeForAllRepositories([$branch]);
 
         foreach ($result->getMessages() as $message) {
             $symbol = $message->getType() === MessageInterface::TYPE_INFO ? '<fg=green>✔</>' : '<fg=red>✗</>';
