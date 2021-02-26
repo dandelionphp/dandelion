@@ -14,11 +14,6 @@ class Repository
     /**
      * @var string
      */
-    protected $name;
-
-    /**
-     * @var string
-     */
     protected $version;
 
     /**
@@ -37,26 +32,6 @@ class Repository
     public function setPath(string $path): Repository
     {
         $this->path = $path;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @param string $name
-     *
-     * @return \Dandelion\Configuration\Repository
-     */
-    public function setName(string $name): Repository
-    {
-        $this->name = $name;
 
         return $this;
     }

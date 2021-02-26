@@ -248,7 +248,7 @@ class SplitterTest extends Unit
 
         $this->platformMock->expects(static::atLeastOnce())
             ->method('getRepositoryUrl')
-            ->with($this->repositoryMock)
+            ->with($repositoryName)
             ->willReturn($repositoryUrl);
 
         $this->repositoryMock->expects(static::atLeastOnce())

@@ -182,11 +182,6 @@ class SplitRepositoryInitializerTest extends Unit
             ->with($repositoryName)
             ->willReturn(true);
 
-        $this->repositoriesMock->expects(static::atLeastOnce())
-            ->method('offsetGet')
-            ->with($repositoryName)
-            ->willReturn($this->repositoryMock);
-
         $this->configurationMock->expects(static::atLeastOnce())
             ->method('getVcs')
             ->willReturn($this->vcsMock);
@@ -198,12 +193,12 @@ class SplitRepositoryInitializerTest extends Unit
 
         $this->platformMock->expects(static::atLeastOnce())
             ->method('existsSplitRepository')
-            ->with($this->repositoryMock)
+            ->with($repositoryName)
             ->willReturn(false);
 
         $this->platformMock->expects(static::atLeastOnce())
             ->method('initSplitRepository')
-            ->with($this->repositoryMock)
+            ->with($repositoryName)
             ->willReturn($this->platformMock);
 
         static::assertEquals(
@@ -234,11 +229,6 @@ class SplitRepositoryInitializerTest extends Unit
             ->with($repositoryName)
             ->willReturn(true);
 
-        $this->repositoriesMock->expects(static::atLeastOnce())
-            ->method('offsetGet')
-            ->with($repositoryName)
-            ->willReturn($this->repositoryMock);
-
         $this->configurationMock->expects(static::atLeastOnce())
             ->method('getVcs')
             ->willReturn($this->vcsMock);
@@ -250,7 +240,7 @@ class SplitRepositoryInitializerTest extends Unit
 
         $this->platformMock->expects(static::atLeastOnce())
             ->method('existsSplitRepository')
-            ->with($this->repositoryMock)
+            ->with($repositoryName)
             ->willReturn(true);
 
         $this->platformMock->expects(static::never())

@@ -4,28 +4,26 @@ declare(strict_types=1);
 
 namespace Dandelion\VersionControl\Platform;
 
-use Dandelion\Configuration\Repository;
-
 interface PlatformInterface
 {
     /**
-     * @param \Dandelion\Configuration\Repository $repository
+     * @param string $repositoryName
      *
      * @return string
      */
-    public function getRepositoryUrl(Repository $repository): string;
+    public function getRepositoryUrl(string $repositoryName): string;
 
     /**
-     * @param \Dandelion\Configuration\Repository $repository
+     * @param string $repositoryName
      *
      * @return \Dandelion\VersionControl\Platform\PlatformInterface
      */
-    public function initSplitRepository(Repository $repository): PlatformInterface;
+    public function initSplitRepository(string $repositoryName): PlatformInterface;
 
     /**
-     * @param \Dandelion\Configuration\Repository $repository
+     * @param string $repositoryName
      *
      * @return bool
      */
-    public function existsSplitRepository(Repository $repository): bool;
+    public function existsSplitRepository(string $repositoryName): bool;
 }

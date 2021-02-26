@@ -22,13 +22,12 @@ class SplitRepositoryInitializer extends AbstractOperation implements SplitRepos
         }
 
         $platform = $this->platformFactory->create($configuration->getVcs());
-        $repository = $repositories->offsetGet($repositoryName);
 
-        if ($platform->existsSplitRepository($repository)) {
+        if ($platform->existsSplitRepository($repositoryName)) {
             return $this;
         }
 
-        $platform->initSplitRepository($repository);
+        $platform->initSplitRepository($repositoryName);
 
         return $this;
     }

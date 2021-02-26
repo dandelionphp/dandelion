@@ -53,25 +53,29 @@ class Github implements PlatformInterface
     }
 
     /**
-     * @param \Dandelion\Configuration\Repository $repository
+     * @param string $repositoryName
      *
      * @return string
      */
-    public function getRepositoryUrl(Repository $repository): string
+    public function getRepositoryUrl(string $repositoryName): string
     {
         return sprintf(
             'https://%s@github.com/%s/%s.git',
             $this->vcs->getToken(),
             $this->vcs->getOwner()->getName(),
-            $repository->getName()
+            $repositoryName
         );
     }
 
     /**
-     * @param \Dandelion\Configuration\Repository $repository
+     * @param string $repositoryName
+     *
      * @return \Dandelion\VersionControl\Platform\PlatformInterface
+     *
+     * @throws \Dandelion\Exception\SplitRepositoryNotInitializedException
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function initSplitRepository(Repository $repository): PlatformInterface
+    public function initSplitRepository(string $repositoryName): PlatformInterface
     {
         $owner = $this->vcs->getOwner();
 
@@ -87,10 +91,10 @@ class Github implements PlatformInterface
                 'Authorization' => sprintf('token %s', $this->vcs->getToken())
             ], 'json' => array_merge(
                 [
-                    'name' => $repository->getName(),
+                    'name' => $repositoryName,
                     'description' => sprintf(
                         static::FORMAT_DESCRIPTION,
-                        str_replace('-', '', ucwords($repository->getName(), '-'))
+                        str_replace('-', '', ucwords($repositoryName, '-'))
                     )
                 ],
                 static::SPLIT_REPOSITORY_DEFAULTS
@@ -102,7 +106,7 @@ class Github implements PlatformInterface
                 sprintf(
                     'Could not initialize split repository "%s/%s".',
                     $owner->getName(),
-                    $repository->getName()
+                    $repositoryName
                 )
             );
         }
@@ -111,16 +115,18 @@ class Github implements PlatformInterface
     }
 
     /**
-     * @param \Dandelion\Configuration\Repository $repository
+     * @param string $repositoryName
      *
      * @return bool
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function existsSplitRepository(Repository $repository): bool
+    public function existsSplitRepository(string $repositoryName): bool
     {
         $url = sprintf(
             'https://api.github.com/repos/%s/%s',
             $this->vcs->getOwner()->getName(),
-            $repository->getName()
+            $repositoryName
         );
 
         $response = $this->httpClient->request('GET', $url, [

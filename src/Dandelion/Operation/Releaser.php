@@ -87,7 +87,7 @@ class Releaser extends AbstractOperation implements ReleaserInterface
 
         $platform = $this->platformFactory->create($configuration->getVcs());
 
-        $this->doExecuteForSingleRepository($platform, $branch, $repository);
+        $this->doExecuteForSingleRepository($platform, $branch, $repository, $repositoryName);
 
         $this->filesystem->changeDirectory($currentWorkingDirectory)
             ->removeDirectory($tempDirectory);
@@ -99,17 +99,19 @@ class Releaser extends AbstractOperation implements ReleaserInterface
      * @param \Dandelion\VersionControl\Platform\PlatformInterface $platform
      * @param string $branch
      * @param \Dandelion\Configuration\Repository $repository
+     * @param string $repositoryName
      *
      * @return \Dandelion\Operation\AbstractOperation
      */
     protected function doExecuteForSingleRepository(
         PlatformInterface $platform,
         string $branch,
-        Repository $repository
+        Repository $repository,
+        string $repositoryName
     ): AbstractOperation {
         $version = $repository->getVersion();
 
-        $this->git->clone($platform->getRepositoryUrl($repository), '.')
+        $this->git->clone($platform->getRepositoryUrl($repositoryName), '.')
             ->checkout($branch);
 
         if ($this->git->describeClosestTag($version) !== null) {

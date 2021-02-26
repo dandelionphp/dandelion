@@ -89,7 +89,7 @@ class Splitter extends AbstractOperation implements SplitterInterface
         $this->acquire(static::LOCK_IDENTIFIER);
 
         if (!$this->git->existsRemote($repositoryName)) {
-            $this->git->addRemote($repositoryName, $platform->getRepositoryUrl($repository));
+            $this->git->addRemote($repositoryName, $platform->getRepositoryUrl($repositoryName));
         }
 
         $this->release();

@@ -23,15 +23,9 @@ class GithubTest extends Unit
     protected $vcsMock;
 
     /**
-     * @var \Dandelion\Configuration\Owner|\PHPUnit\Framework\MockObject\MockObject
+     * @var \Dandelion\Configuration\Vcs\Owner|\PHPUnit\Framework\MockObject\MockObject
      */
     protected $ownerMock;
-
-
-    /**
-     * @var \Dandelion\Configuration\Repository|\PHPUnit\Framework\MockObject\MockObject
-     */
-    protected $repositoryMock;
 
     /**
      * @var \PHPUnit\Framework\MockObject\MockObject|\Psr\Http\Message\ResponseInterface
@@ -59,10 +53,6 @@ class GithubTest extends Unit
             ->getMock();
 
         $this->ownerMock = $this->getMockBuilder(Owner::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $this->repositoryMock = $this->getMockBuilder(Repository::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -98,13 +88,9 @@ class GithubTest extends Unit
             ->method('getName')
             ->willReturn($ownerName);
 
-        $this->repositoryMock->expects(static::atLeastOnce())
-            ->method('getName')
-            ->willReturn('bar');
-
         static::assertEquals(
             $expectedRepositoryUrl,
-            $this->github->getRepositoryUrl($this->repositoryMock)
+            $this->github->getRepositoryUrl($repositoryName)
         );
     }
 
@@ -131,10 +117,6 @@ class GithubTest extends Unit
             ->method('getName')
             ->willReturn($ownerName);
 
-        $this->repositoryMock->expects(static::atLeastOnce())
-            ->method('getName')
-            ->willReturn($repositoryName);
-
         $this->vcsMock->expects(static::atLeastOnce())
             ->method('getToken')
             ->willReturn($token);
@@ -154,7 +136,7 @@ class GithubTest extends Unit
             ->willReturn(200);
 
         static::assertTrue(
-            $this->github->existsSplitRepository($this->repositoryMock)
+            $this->github->existsSplitRepository($repositoryName)
         );
     }
 
@@ -184,10 +166,6 @@ class GithubTest extends Unit
         $this->ownerMock->expects(static::atLeastOnce())
             ->method('getName')
             ->willReturn($ownerName);
-
-        $this->repositoryMock->expects(static::atLeastOnce())
-            ->method('getName')
-            ->willReturn($repositoryName);
 
         $this->vcsMock->expects(static::atLeastOnce())
             ->method('getToken')
@@ -219,7 +197,7 @@ class GithubTest extends Unit
 
         static::assertEquals(
             $this->github,
-            $this->github->initSplitRepository($this->repositoryMock)
+            $this->github->initSplitRepository($repositoryName)
         );
     }
 
@@ -250,10 +228,6 @@ class GithubTest extends Unit
             ->method('getName')
             ->willReturn($ownerName);
 
-        $this->repositoryMock->expects(static::atLeastOnce())
-            ->method('getName')
-            ->willReturn($repositoryName);
-
         $this->vcsMock->expects(static::atLeastOnce())
             ->method('getToken')
             ->willReturn($token);
@@ -283,7 +257,7 @@ class GithubTest extends Unit
             ->willReturn(500);
 
         try {
-            $this->github->initSplitRepository($this->repositoryMock);
+            $this->github->initSplitRepository($repositoryName);
             self::fail();
         } catch (Exception $exception) {
         }
@@ -313,10 +287,6 @@ class GithubTest extends Unit
             ->method('getName')
             ->willReturn($ownerName);
 
-        $this->repositoryMock->expects(static::atLeastOnce())
-            ->method('getName')
-            ->willReturn($repositoryName);
-
         $this->vcsMock->expects(static::atLeastOnce())
             ->method('getToken')
             ->willReturn($token);
@@ -346,7 +316,7 @@ class GithubTest extends Unit
             ->willReturn(500);
 
         try {
-            $this->github->initSplitRepository($this->repositoryMock);
+            $this->github->initSplitRepository($repositoryName);
             self::fail();
         } catch (Exception $exception) {
         }
