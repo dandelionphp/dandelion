@@ -1,4 +1,4 @@
-FROM golang:alpine AS compiler
+FROM golang:1.15-alpine AS compiler
 
 RUN apk add make cmake pkgconfig musl-dev gcc git
 
