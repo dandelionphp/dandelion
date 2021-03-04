@@ -5,20 +5,10 @@
       "type": "object",
       "title": "Split-Repository",
       "required": [
-        "name",
         "path",
         "version"
       ],
       "properties": {
-        "name": {
-          "type": "string",
-          "title": "Name",
-          "description": "Git repository name.",
-          "default": "",
-          "examples": [
-            "config"
-          ]
-        },
         "path": {
           "type": "string",
           "title": "Path",
