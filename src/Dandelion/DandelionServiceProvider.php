@@ -7,6 +7,7 @@ namespace Dandelion;
 use Dandelion\Configuration\ConfigurationFinder;
 use Dandelion\Configuration\ConfigurationLoader;
 use Dandelion\Configuration\ConfigurationValidator;
+use Dandelion\Console\Command\MergeCommand;
 use Dandelion\Console\Command\SplitRepositoryInitAllCommand;
 use Dandelion\Console\Command\SplitRepositoryInitCommand;
 use Dandelion\Console\Command\ReleaseAllCommand;
@@ -15,6 +16,9 @@ use Dandelion\Console\Command\SplitAllCommand;
 use Dandelion\Console\Command\SplitCommand;
 use Dandelion\Console\Command\ValidateCommand;
 use Dandelion\Filesystem\Filesystem;
+use Dandelion\Merger\Merger;
+use Dandelion\Merger\Resources\Collection;
+use Dandelion\Merger\Resources\ComposerJsonResource;
 use Dandelion\Operation\SplitRepositoryInitializer;
 use Dandelion\Operation\Releaser;
 use Dandelion\Operation\Result\MessageFactory;
@@ -68,6 +72,8 @@ class DandelionServiceProvider implements ServiceProviderInterface
         $container = $this->registerSplitter($container);
         $container = $this->registerReleaser($container);
         $container = $this->registerConfigurationValidator($container);
+        $container = $this->registerMergerResourceCollection($container);
+        $container = $this->registerMerger($container);
         $this->registerCommands($container);
     }
 
@@ -110,6 +116,7 @@ class DandelionServiceProvider implements ServiceProviderInterface
                 $self->createReleaseCommand($container),
                 $self->createReleaseAllCommand($container),
                 $self->createValidateCommand($container),
+                $self->createMergeCommand($container),
             ];
         });
 
@@ -461,6 +468,39 @@ class DandelionServiceProvider implements ServiceProviderInterface
     /**
      * @param \Pimple\Container $container
      *
+     * @return \Pimple\Container
+     */
+    protected function registerMergerResourceCollection(Container $container): Container
+    {
+        $container->offsetSet('merger_resource_collection', static function (Container $container) {
+            return new Collection([
+                new ComposerJsonResource($container->offsetGet('filesystem'))
+            ]);
+        });
+
+        return $container;
+    }
+
+    /**
+     * @param \Pimple\Container $container
+     *
+     * @return \Pimple\Container
+     */
+    protected function registerMerger(Container $container): Container
+    {
+        $container->offsetSet('merger', static function (Container $container) {
+            return new Merger(
+                $container->offsetGet('finder'),
+                $container->offsetGet('merger_resource_collection'),
+            );
+        });
+
+        return $container;
+    }
+
+    /**
+     * @param \Pimple\Container $container
+     *
      * @return \Dandelion\Console\Command\ReleaseCommand
      */
     protected function createReleaseCommand(Container $container): ReleaseCommand
@@ -487,6 +527,18 @@ class DandelionServiceProvider implements ServiceProviderInterface
     {
         return new ValidateCommand(
             $container->offsetGet('configuration_validator')
+        );
+    }
+
+    /**
+     * @param \Pimple\Container $container
+     *
+     * @return \Dandelion\Console\Command\MergeCommand
+     */
+    protected function createMergeCommand(Container $container): MergeCommand
+    {
+        return new MergeCommand(
+            $container->offsetGet('merger')
         );
     }
 }
