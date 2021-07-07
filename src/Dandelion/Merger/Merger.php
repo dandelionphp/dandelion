@@ -5,7 +5,6 @@ namespace Dandelion\Merger;
 
 
 use ArrayObject;
-use Dandelion\Filesystem\FilesystemInterface;
 use Dandelion\Merger\Resources\CollectionInterface;
 use Exception;
 use Iterator;

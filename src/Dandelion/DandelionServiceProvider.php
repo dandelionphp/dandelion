@@ -16,7 +16,10 @@ use Dandelion\Console\Command\SplitAllCommand;
 use Dandelion\Console\Command\SplitCommand;
 use Dandelion\Console\Command\ValidateCommand;
 use Dandelion\Filesystem\Filesystem;
+use Dandelion\Merger\Loader\ComposerJsonLoader;
+use Dandelion\Merger\Loader\LoaderInterface;
 use Dandelion\Merger\Merger;
+use Dandelion\Merger\MergerFactory;
 use Dandelion\Merger\Resources\Collection;
 use Dandelion\Merger\Resources\ComposerJsonResource;
 use Dandelion\Operation\SplitRepositoryInitializer;
@@ -72,6 +75,7 @@ class DandelionServiceProvider implements ServiceProviderInterface
         $container = $this->registerSplitter($container);
         $container = $this->registerReleaser($container);
         $container = $this->registerConfigurationValidator($container);
+        $container = $this->registerMergerFactory($container);
         $container = $this->registerMergerResourceCollection($container);
         $container = $this->registerMerger($container);
         $this->registerCommands($container);
@@ -470,11 +474,32 @@ class DandelionServiceProvider implements ServiceProviderInterface
      *
      * @return \Pimple\Container
      */
+    protected function registerMergerFactory(Container $container): Container
+    {
+        $container->offsetSet('merger_factory', static function (Container $container) {
+            return new MergerFactory(
+                $container->offsetGet('filesystem'),
+                $container->offsetGet('serializer')
+            );
+        });
+
+        return $container;
+    }
+
+    /**
+     * @param \Pimple\Container $container
+     *
+     * @return \Pimple\Container
+     */
     protected function registerMergerResourceCollection(Container $container): Container
     {
-        $container->offsetSet('merger_resource_collection', static function (Container $container) {
+        /** @var MergerFactory $mergerFactory */
+        $mergerFactory = $container->offsetGet('merger_factory');
+        $container->offsetSet('merger_resource_collection', static function (Container $container) use ($mergerFactory) {
             return new Collection([
-                new ComposerJsonResource($container->offsetGet('filesystem'))
+                new ComposerJsonResource(
+                    $container->offsetGet('filesystem'), $mergerFactory->createComposerJsonLoader()
+                )
             ]);
         });
 
