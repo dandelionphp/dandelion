@@ -92,12 +92,12 @@ class Splitter extends AbstractOperation implements SplitterInterface
             $this->git->addRemote($repositoryName, $platform->getRepositoryUrl($repositoryName));
         }
 
-        $this->release();
-
         $sha1 = $this->splitshLite->getSha1($repository->getPath());
         $refSpec = sprintf('%s:refs/heads/%s', $sha1, $branch);
 
         $this->git->pushForcefully($repositoryName, $refSpec);
+
+        $this->release();
 
         return $this;
     }

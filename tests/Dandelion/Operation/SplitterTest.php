@@ -274,10 +274,6 @@ class SplitterTest extends Unit
             ->method('addRemote')
             ->with($repositoryName, $repositoryUrl);
 
-        $this->lockMock->expects(static::atLeastOnce())
-            ->method('release')
-            ->willReturn(true);
-
         $this->splitshLiteMock->expects(static::atLeastOnce())
             ->method('getSha1')
             ->with($repositoryPath)
@@ -286,6 +282,10 @@ class SplitterTest extends Unit
         $this->gitMock->expects(static::atLeastOnce())
             ->method('pushForcefully')
             ->with($repositoryName, sprintf('%s:refs/heads/%s', $sha1, $branch));
+
+        $this->lockMock->expects(static::atLeastOnce())
+            ->method('release')
+            ->willReturn(true);
 
         static::assertEquals(
             $this->splitter,
