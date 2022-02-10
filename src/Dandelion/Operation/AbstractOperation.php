@@ -100,10 +100,11 @@ abstract class AbstractOperation
         return static function (Process $process) use ($result, $messageFactory, $repositoryName) {
             // @codeCoverageIgnoreStart
             $type = $process->isSuccessful() ? MessageInterface::TYPE_INFO : MessageInterface::TYPE_ERROR;
+            $text = $process->isSuccessful() ? $repositoryName : sprintf('%s -> %s', $repositoryName, $process->getErrorOutput());
 
             $message = $messageFactory->create()
                 ->setType($type)
-                ->setText($repositoryName);
+                ->setText($text);
 
             $result->addMessage($message);
             // @codeCoverageIgnoreEnd
