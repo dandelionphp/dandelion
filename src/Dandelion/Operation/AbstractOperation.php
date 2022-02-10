@@ -13,6 +13,7 @@ use Dandelion\VersionControl\Platform\PlatformFactoryInterface;
 use Symfony\Component\Process\Process;
 
 use function array_merge;
+use function sprintf;
 
 abstract class AbstractOperation
 {
@@ -99,8 +100,13 @@ abstract class AbstractOperation
 
         return static function (Process $process) use ($result, $messageFactory, $repositoryName) {
             // @codeCoverageIgnoreStart
-            $type = $process->isSuccessful() ? MessageInterface::TYPE_INFO : MessageInterface::TYPE_ERROR;
-            $text = $process->isSuccessful() ? $repositoryName : sprintf('%s -> %s', $repositoryName, $process->getErrorOutput());
+            $type = MessageInterface::TYPE_INFO;
+            $text = $repositoryName;
+
+            if (!$process->isSuccessful()) {
+                $type = MessageInterface::TYPE_ERROR;
+                $text = sprintf('%s -> %s', $repositoryName, $process->getErrorOutput());
+            }
 
             $message = $messageFactory->create()
                 ->setType($type)
