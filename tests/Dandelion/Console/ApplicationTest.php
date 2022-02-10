@@ -51,7 +51,7 @@ class ApplicationTest extends Unit
             ->method('offsetGet')
             ->with('commands');
 
-        $this->assertCount(2, $this->application->all());
+        $this->assertCount(4, $this->application->all());
     }
     /**
      * @return void
@@ -70,7 +70,7 @@ class ApplicationTest extends Unit
             ->with('commands')
             ->willReturn(0);
 
-        $this->assertCount(2, $this->application->all());
+        $this->assertCount(4, $this->application->all());
     }
 
     /**
@@ -90,6 +90,6 @@ class ApplicationTest extends Unit
             ->with('commands')
             ->willReturn([new Command('foo:bar'), new stdClass()]);
 
-        $this->assertCount(3, $this->application->all());
+        $this->assertCount(5, $this->application->all());
     }
 }
