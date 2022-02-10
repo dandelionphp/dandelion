@@ -8,9 +8,8 @@ use RuntimeException as BaseRuntimeException;
 
 class RuntimeException extends BaseRuntimeException
 {
-
     /**
-     * @param string $message
+     * @param string|null $message
      *
      * @param int|null $code
      */
